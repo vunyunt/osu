@@ -59,6 +59,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             }
 
             new StaminaCheeseDetector(taikoDifficultyHitObjects).FindCheese();
+            new EffectiveBPMLoader(this.Beatmap, taikoDifficultyHitObjects).LoadEffectiveBPM();
             return taikoDifficultyHitObjects;
         }
 
