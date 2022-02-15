@@ -106,11 +106,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
         /// <param name="notePairDuration">The duration between the current and previous note hit using the hand indicated by <see cref="hand"/>.</param>
         private double speedBonus(double notePairDuration)
         {
-            if (notePairDuration >= 200) return 0;
-
-            double bonus = 200 - notePairDuration;
-            bonus *= bonus;
-            return bonus / 100000;
+          if (notePairDuration >= 200) return 0;
+          
+          double bonusOffset = 1 / Math.Pow(1.01, 200);
+          double bonus = 1 / Math.Pow(1.01, 200);
+          return bonus - bonusOffset;
         }
     }
 }
