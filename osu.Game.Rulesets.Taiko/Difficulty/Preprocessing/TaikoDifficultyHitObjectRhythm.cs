@@ -36,7 +36,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// <summary>
         /// Creates an object representing a rhythm change. Difficulty is calculated from the ratio.
         /// </summary>
-        public TaikoDifficultyHitObjectRhythm(double ratio) {
+        public TaikoDifficultyHitObjectRhythm(double ratio)
+        {
             Ratio = ratio;
             Difficulty = difficultyFromRatio(ratio);
         }
@@ -53,19 +54,51 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
             // For offsetting the penalty so that a positive difficulty is given.
             double multiplierSum = 0;
             double difficulty = 0;
-            for(int i = 0; i < 8; ++i) {
+            for (int i = 0; i < 8; ++i)
+            {
                 double currentTermMultiplier = termMultiplier(i);
                 difficulty += termPenalty(ratio, i, 8, currentTermMultiplier);
                 multiplierSum += currentTermMultiplier;
             }
+            difficulty += multiplierSum;
 
-            return difficulty + multiplierSum;
+            // Speeding up is more difficult than slowing down
+            difficulty += speedUpBonus(ratio, 1.05, 10, 1);
+
+            // Give bonus to near-1 ratios
+            difficulty += targetedBonus(ratio, 1, 0.5, 1);
+
+            // Penalize ratios that are VERY near 1
+            difficulty -= targetedBonus(ratio, 1, 0.1, 1);
+
+            return difficulty;
+        }
+
+        /// <summary>
+        /// Gives a bonus for speed up.
+        /// </summary>
+        private double speedUpBonus(double ratio, double steepness, double multiplier, double upperBound)
+        {
+            if (ratio > upperBound) return 0;
+            return multiplier / Math.Pow(steepness, ratio) - multiplier / Math.Pow(steepness, upperBound);
+        }
+
+        /// <summary>
+        /// Gives a bonus for target ratio using a bell-shaped function.
+        /// </summary>
+        private double targetedBonus(double ratio, double targetRatio, double width, double multiplier)
+        {
+            width = 1 / Math.E * width;
+
+            // Gaussian function
+            return multiplier * Math.Exp(Math.Pow(-0.5 * (-targetRatio * width + width * ratio), 2));
         }
 
         /// <summary>
         /// Multiplier for a given denominator term.
         /// </summary>
-        private double termMultiplier(int denominator) {
+        private double termMultiplier(int denominator)
+        {
             return 1;
         }
 
@@ -77,9 +110,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// <param name="denominator">The denominator term to calculate the penalty for. A denominator of 3 means 1/3, 2/3, 3/3, 4/3 etc will be penalized</param>
         /// <param name="power">Power to raise to, higher power will result in a narrower penalization range.</param>
         /// <param name="multiplier">Multiplier for the denominator term.</param>
-        private double termPenalty(double ratio, int denominator, double power, double multiplier) 
+        private double termPenalty(double ratio, int denominator, double power, double multiplier)
         {
-            return multiplier * Math.Pow(Math.Cos(denominator * Math.PI * ratio), power);
+            return -multiplier * Math.Pow(Math.Cos(denominator * Math.PI * ratio), power);
         }
     }
 }
