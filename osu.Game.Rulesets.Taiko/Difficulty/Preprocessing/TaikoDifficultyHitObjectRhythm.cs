@@ -7,7 +7,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
     /// <summary>
     /// Represents a rhythm change in a taiko map.
     /// </summary>
-    public class TaikoDifficultyHitObjectRhythm
+    public class TaikoDifficultyHitObjectRhythm : IEquatable<TaikoDifficultyHitObjectRhythm>
     {
         /// <summary>
         /// The difficulty multiplier associated with this rhythm change.
@@ -22,24 +22,21 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         public readonly double Ratio;
 
         /// <summary>
-        /// Creates an object representing a rhythm change.
-        /// </summary>
-        /// <param name="numerator">The numerator for <see cref="Ratio"/>.</param>
-        /// <param name="denominator">The denominator for <see cref="Ratio"/></param>
-        /// <param name="difficulty">The difficulty multiplier associated with this rhythm change.</param>
-        public TaikoDifficultyHitObjectRhythm(int numerator, int denominator, double difficulty)
-        {
-            Ratio = numerator / (double)denominator;
-            Difficulty = difficulty;
-        }
-
-        /// <summary>
         /// Creates an object representing a rhythm change. Difficulty is calculated from the ratio.
         /// </summary>
+        /// <param name="ratio">Ratio of current interval to previous interval</param>
         public TaikoDifficultyHitObjectRhythm(double ratio)
         {
             Ratio = ratio;
             Difficulty = difficultyFromRatio(ratio);
+        }
+
+        /// <summary>
+        /// Considered equal if the ratios are sufficiently close. This is to account for double precision rounding errors.
+        /// </summary>
+        public bool Equals(TaikoDifficultyHitObjectRhythm other)
+        {
+            return Math.Abs(other.Ratio - Ratio) < 0.01;
         }
 
         /// <summary>
