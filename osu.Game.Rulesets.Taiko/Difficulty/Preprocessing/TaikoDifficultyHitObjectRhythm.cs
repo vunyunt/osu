@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
             // For offsetting the penalty so that a positive difficulty is given.
             double multiplierSum = 0;
             double difficulty = 0;
-            for (int i = 0; i < 8; ++i)
+            for (int i = 1; i < 8; ++i)
             {
                 double currentTermMultiplier = termMultiplier(i);
                 difficulty += termPenalty(ratio, i, 8, currentTermMultiplier);
@@ -59,14 +59,15 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
             }
             difficulty += multiplierSum;
 
-            // Speeding up is more difficult than slowing down
-            difficulty += speedUpBonus(ratio, 1.05, 10, 1);
+            // Speeding up is more difficult than slowing down(?)
+            // difficulty += speedUpBonus(ratio, 1.05, 10, 1);
 
             // Give bonus to near-1 ratios
-            difficulty += targetedBonus(ratio, 1, 0.5, 1);
+            difficulty += targetedBonus(ratio, 1, 0.2, 1);
 
             // Penalize ratios that are VERY near 1
-            difficulty -= targetedBonus(ratio, 1, 0.1, 1);
+            difficulty -= targetedBonus(ratio, 1, 0.05, 2);
+            difficulty += 1;
 
             return difficulty;
         }
@@ -96,7 +97,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// </summary>
         private double termMultiplier(int denominator)
         {
-            return 1;
+            return denominator / 50d;
         }
 
         /// <summary>
