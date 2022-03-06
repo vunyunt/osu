@@ -63,11 +63,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
             // difficulty += speedUpBonus(ratio, 1.05, 10, 1);
 
             // Give bonus to near-1 ratios
-            difficulty += targetedBonus(ratio, 1, 0.2, 1);
+            difficulty += targetedBonus(ratio, 1, 0.5, 2);
 
             // Penalize ratios that are VERY near 1
-            difficulty -= targetedBonus(ratio, 1, 0.05, 2);
-            difficulty += 1;
+            difficulty -= targetedBonus(ratio, 1, 0.01, 2);
+
+            // Final multiplier
+            difficulty *= 0.5;
 
             return difficulty;
         }
@@ -86,10 +88,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// </summary>
         private double targetedBonus(double ratio, double targetRatio, double width, double multiplier)
         {
-            width = 1 / Math.E * width;
-
             // Gaussian function
-            return multiplier * Math.Exp(Math.Pow(-0.5 * (-targetRatio * width + width * ratio), 2));
+            return multiplier * Math.Exp(Math.E * -(Math.Pow(ratio - targetRatio, 2) / Math.Pow(width, 2)));
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// </summary>
         private double termMultiplier(int denominator)
         {
-            return denominator / 50d;
+            return 0.25;
         }
 
         /// <summary>
