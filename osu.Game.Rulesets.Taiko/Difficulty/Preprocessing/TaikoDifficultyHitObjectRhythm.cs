@@ -100,11 +100,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
             switch (denominator)
             {
                 case 2:
-                    return 0.4;
-                case 3:
                     return 0.2;
+                case 3:
+                    return 0.15;
                 default:
-                    return 0.07;
+                    return 0.1;
             }
         }
 

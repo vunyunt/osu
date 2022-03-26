@@ -93,7 +93,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
         private double leniencyPenalty(TaikoDifficultyHitObject hitObject)
         {
             double leniency = greatHitWindow / hitObject.DeltaTime;
-            double penalty = sigmoid(leniency, 0.3, 0.2) * 0.25 + 0.75;
+            double penalty = sigmoid(leniency, 0.3, 0.2) * 0.1 + 0.9;
             return penalty;
         }
 
