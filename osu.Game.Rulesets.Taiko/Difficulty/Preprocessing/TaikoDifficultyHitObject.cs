@@ -128,8 +128,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         {
             double prevLength = (lastObject.StartTime - lastLastObject.StartTime) / clockRate;
             double ratio = DeltaTime / prevLength;
+            TaikoDifficultyHitObjectRhythm rhythm = common_rhythms.OrderBy(x => Math.Abs(x.Ratio - ratio)).First();
 
-            return common_rhythms.OrderBy(x => Math.Abs(x.Ratio - ratio)).First();
+            return new TaikoDifficultyHitObjectRhythm(rhythm.Ratio, rhythm.Difficulty);
         }
 
         public TaikoDifficultyHitObject? PreviousMono(int backwardsIndex) => monoDifficultyHitObjects?.ElementAtOrDefault(MonoIndex - (backwardsIndex + 1));

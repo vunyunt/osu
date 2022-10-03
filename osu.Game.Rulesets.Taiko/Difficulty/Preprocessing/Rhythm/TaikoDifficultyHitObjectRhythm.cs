@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data;
+
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 {
     /// <summary>
@@ -8,6 +10,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
     /// </summary>
     public class TaikoDifficultyHitObjectRhythm
     {
+        public FlatPattern? FlatPattern;
+
+        public ContinuousPattern? ContinuousPattern;
+
+        public RepeatingRhythmPattern? RepeatingRhythmPattern;
+
         /// <summary>
         /// The difficulty multiplier associated with this rhythm change.
         /// </summary>
@@ -29,6 +37,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         public TaikoDifficultyHitObjectRhythm(int numerator, int denominator, double difficulty)
         {
             Ratio = numerator / (double)denominator;
+            Difficulty = difficulty;
+        }
+
+        public TaikoDifficultyHitObjectRhythm(double ratio, double difficulty)
+        {
+            Ratio = ratio;
             Difficulty = difficulty;
         }
     }

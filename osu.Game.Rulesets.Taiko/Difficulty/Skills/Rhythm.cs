@@ -70,10 +70,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
             notesSinceRhythmChange += 1;
 
             // rhythm difficulty zero (due to rhythm not changing) => no rhythm strain.
-            if (hitObject.Rhythm.Difficulty == 0.0)
-            {
-                return 0.0;
-            }
+            // if (hitObject.Rhythm.Difficulty == 0.0)
+            // {
+            //     return 0.0;
+            // }
 
             double objectStrain = hitObject.Rhythm.Difficulty;
 
@@ -85,6 +85,18 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
             notesSinceRhythmChange = 0;
 
             currentStrain += objectStrain;
+
+            // System.Console.WriteLine(hitObject.Rhythm.FlatPattern?.HitObjects[0].StartTime);
+            if (hitObject.StartTime == hitObject.Rhythm.FlatPattern?.HitObjects[0].StartTime)
+            {
+                if (hitObject.Rhythm.FlatPattern.Index == 0)
+                {
+                    System.Console.WriteLine("NEW CONTINUOUS PATTERN");
+                }
+                System.Console.WriteLine("NEW FLAT PATTERN");
+            }
+            System.Console.WriteLine(hitObject.StartTime);
+
             return currentStrain;
         }
 
