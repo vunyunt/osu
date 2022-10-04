@@ -12,28 +12,38 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
             List<FlatPattern> flatPatterns = encodeFlatPattern(hitObjects);
             List<ContinuousPattern> continuousPatterns = encodeContinuousPattern(flatPatterns);
             List<RepeatingRhythmPattern> repeatingRhythmPatterns = encodeRepeatingRhythmPattern(continuousPatterns);
+        }
 
-            Console.WriteLine(flatPatterns.Count);
+        private static void bind(TaikoDifficultyHitObject hitObject, FlatPattern pattern)
+        {
+            hitObject.Rhythm.FlatPattern = pattern;
+            pattern.HitObjects.Add(hitObject);
         }
 
         private static List<FlatPattern> encodeFlatPattern(List<DifficultyHitObject> data)
         {
             List<FlatPattern> flatPatterns = new List<FlatPattern>();
             FlatPattern? currentPattern = null;
+            var enumerator = data.GetEnumerator();
 
-            data.ForEach(hitObject =>
+            while (enumerator.MoveNext())
             {
-                TaikoDifficultyHitObject taikoHitObject = (TaikoDifficultyHitObject)hitObject;
+                TaikoDifficultyHitObject taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current;
 
                 if (currentPattern == null || Math.Abs(taikoHitObject.Rhythm.Ratio - 1) > 0.1)
                 {
                     currentPattern = new FlatPattern();
                     flatPatterns.Add(currentPattern);
+
+                    // Because a flat pattern always contain at least two hit objects (except in the case of the final 
+                    // hit object), we are skipping the chewck for one hit object
+                    bind(taikoHitObject, currentPattern);
+                    if (!enumerator.MoveNext()) break;
+                    taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current;
                 }
 
-                taikoHitObject.Rhythm.FlatPattern = currentPattern;
-                currentPattern.HitObjects.Add(taikoHitObject);
-            });
+                bind(taikoHitObject, currentPattern);
+            }
 
             return flatPatterns;
         }
@@ -45,7 +55,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 
             data.ForEach(flatPattern =>
             {
-                if (currentPattern == null || flatPattern.Ratio < 1.9)
+                if (currentPattern == null || flatPattern.Ratio > 1.9)
                 {
                     currentPattern = new ContinuousPattern();
                     continuousPatterns.Add(currentPattern);
@@ -54,6 +64,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                 flatPattern.Parent = currentPattern;
                 flatPattern.Index = currentPattern.FlatPatterns.Count;
                 flatPattern.HitObjects.ForEach(hitObject => hitObject.Rhythm.ContinuousPattern = currentPattern);
+                flatPattern.FindAlternatingIndex();
                 currentPattern.FlatPatterns.Add(flatPattern);
                 currentPattern.Length += flatPattern.HitObjects.Count;
             });

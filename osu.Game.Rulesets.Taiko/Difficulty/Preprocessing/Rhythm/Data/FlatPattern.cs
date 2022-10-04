@@ -10,18 +10,18 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
     /// </summary>
     public class FlatPattern
     {
-        private const int max_repetition_interval = 16;
-
         public List<TaikoDifficultyHitObject> HitObjects { get; private set; } = new List<TaikoDifficultyHitObject>();
 
         public ContinuousPattern Parent = null!;
 
         public int Index;
 
+        public int AlternatingIndex = 0;
+
         /// <summary>
         /// The previous <see cref="FlatPattern"/> within the same <see cref="ContinuousPattern"/>.
         /// </summary>
-        public FlatPattern? Previous => Index == 0 ? Parent.FlatPatterns[Index - 1] : null;
+        public FlatPattern? Previous => Index > 0 ? Parent.FlatPatterns[Index - 1] : null;
 
         /// <summary>
         /// The <see cref="TaikoDifficultyHitObjectRhythm.Ratio"/> of the first hit object in this pattern.
@@ -33,23 +33,20 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             return Math.Abs(this.Ratio / other.Ratio - 1) < 0.05 && HitObjects.Count == other.HitObjects.Count;
         }
 
-        public int FindRepetitionInterval()
+        /// <summary>
+        /// This should be called after the <see cref="Parent"/> is set, as alternating patterns only count within the 
+        /// same parent pattern.
+        /// </summary>
+        public void FindAlternatingIndex()
         {
-            FlatPattern? current = Previous;
-            int interval = 1;
-            while (current != null)
+            FlatPattern? alt = Previous?.Previous;
+            FlatPattern? previousAlt = alt?.Previous;
+            if (
+                alt != null && this.IsRepetitionOf(alt) &&
+                (previousAlt == null || Previous!.IsRepetitionOf(previousAlt)))
             {
-                interval += current.HitObjects.Count;
-
-                if (IsRepetitionOf(current))
-                {
-                    return Math.Min(interval, max_repetition_interval);
-                }
-
-                current = current.Previous;
+                AlternatingIndex = alt.AlternatingIndex + 1;
             }
-
-            return max_repetition_interval;
         }
     }
 }

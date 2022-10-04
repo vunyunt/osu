@@ -86,16 +86,23 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
             currentStrain += objectStrain;
 
+            // if (hitObject == hitObject.Rhythm.FlatPattern?.HitObjects[0])
+            // {
+            //     if (hitObject.Rhythm.FlatPattern.Index == 0)
+            //     {
+            //         if (hitObject.Rhythm.ContinuousPattern.Index == 0)
+            //         {
+            //             System.Console.WriteLine("NEW REPEATING RHYTHM PATTERN");
+            //         }
+            //         System.Console.WriteLine("NEW CONTINUOUS PATTERN");
+            //     }
+            //     System.Console.WriteLine("NEW FLAT PATTERN");
+
+            //     System.Console.WriteLine("Alternating Index: " + hitObject.Rhythm.FlatPattern.AlternatingIndex);
+            // }
             // System.Console.WriteLine(hitObject.Rhythm.FlatPattern?.HitObjects[0].StartTime);
-            if (hitObject.StartTime == hitObject.Rhythm.FlatPattern?.HitObjects[0].StartTime)
-            {
-                if (hitObject.Rhythm.FlatPattern.Index == 0)
-                {
-                    System.Console.WriteLine("NEW CONTINUOUS PATTERN");
-                }
-                System.Console.WriteLine("NEW FLAT PATTERN");
-            }
-            System.Console.WriteLine(hitObject.StartTime);
+            // System.Console.WriteLine(hitObject.DeltaTime);
+            // System.Console.WriteLine(hitObject.DeltaTime + ", " + hitObject.Rhythm.Ratio);
 
             return currentStrain;
         }
