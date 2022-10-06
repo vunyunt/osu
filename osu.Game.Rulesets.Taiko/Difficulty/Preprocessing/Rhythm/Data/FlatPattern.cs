@@ -12,6 +12,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
     {
         public List<TaikoDifficultyHitObject> HitObjects { get; private set; } = new List<TaikoDifficultyHitObject>();
 
+        public TaikoDifficultyHitObject FirstHitObject => HitObjects.First();
+
         public ContinuousPattern Parent = null!;
 
         public int Index;

@@ -1,17 +1,22 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 {
     public class RepeatingRhythmPattern
     {
-        private const int max_repetition_interval = 16;
+        private const int max_repetition_interval = 32;
 
         public List<ContinuousPattern> ContinuousPatterns { get; private set; } = new List<ContinuousPattern>();
 
-        public readonly RepeatingRhythmPattern? Previous;
+        public TaikoDifficultyHitObject FirstHitObject => ContinuousPatterns.First().FirstHitObject;
+
+        public RepeatingRhythmPattern? Previous;
 
         public int Length => ContinuousPatterns[0].Length * ContinuousPatterns.Count;
+
+        public int RepetitionInterval = 0;
 
         public bool IsRepetitionOf(RepeatingRhythmPattern other)
         {
@@ -27,7 +32,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             return true;
         }
 
-        public int FindRepetitionInterval()
+        public void FindRepetitionInterval()
         {
             RepeatingRhythmPattern? current = Previous;
             int interval = 1;
@@ -35,15 +40,16 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             {
                 interval += current.Length;
 
-                if (IsRepetitionOf(current))
+                if (current.IsRepetitionOf(this))
                 {
-                    return Math.Min(interval, max_repetition_interval);
+                    RepetitionInterval = Math.Min(interval, max_repetition_interval);
+                    return;
                 }
 
                 current = current.Previous;
             }
 
-            return max_repetition_interval;
+            RepetitionInterval = max_repetition_interval;
         }
     }
 }

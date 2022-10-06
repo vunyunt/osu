@@ -81,7 +81,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
             {
                 if (currentPattern == null || !continuousPattern.IsRepetitionOf(currentPattern.ContinuousPatterns[0]))
                 {
+                    var previousPattern = currentPattern;
                     currentPattern = new RepeatingRhythmPattern();
+                    currentPattern.Previous = previousPattern;
+                    previousPattern?.FindRepetitionInterval();
                     repeatingRhythmPatterns.Add(currentPattern);
                 }
 
@@ -93,6 +96,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                 }
                 currentPattern.ContinuousPatterns.Add(continuousPattern);
             });
+
+            // Find repetition interval for the final pattern
+            currentPattern?.FindRepetitionInterval();
 
             return repeatingRhythmPatterns;
         }

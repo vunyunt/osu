@@ -11,6 +11,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
     {
         public List<FlatPattern> FlatPatterns { get; private set; } = new List<FlatPattern>();
 
+        public TaikoDifficultyHitObject FirstHitObject => FlatPatterns.First().FirstHitObject;
+
         public RepeatingRhythmPattern Parent = null!;
 
         public int Index;
