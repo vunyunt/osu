@@ -28,22 +28,25 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 
             while (enumerator.MoveNext())
             {
-                TaikoDifficultyHitObject taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current;
+                TaikoDifficultyHitObject taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current!;
 
                 if (currentPattern == null || Math.Abs(taikoHitObject.Rhythm.Ratio - 1) > 0.1)
                 {
                     currentPattern = new FlatPattern();
                     flatPatterns.Add(currentPattern);
 
-                    // Because a flat pattern always contain at least two hit objects (except in the case of the final 
+                    // Because a flat pattern always contain at least two hit objects (except in the case of the final
                     // hit object), we are skipping the chewck for one hit object
                     bind(taikoHitObject, currentPattern);
                     if (!enumerator.MoveNext()) break;
-                    taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current;
+
+                    taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current!;
                 }
 
                 bind(taikoHitObject, currentPattern);
             }
+
+            enumerator.Dispose();
 
             return flatPatterns;
         }
@@ -82,18 +85,22 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                 if (currentPattern == null || !continuousPattern.IsRepetitionOf(currentPattern.ContinuousPatterns[0]))
                 {
                     var previousPattern = currentPattern;
-                    currentPattern = new RepeatingRhythmPattern();
-                    currentPattern.Previous = previousPattern;
+                    currentPattern = new RepeatingRhythmPattern()
+                    {
+                        Previous = previousPattern
+                    };
                     previousPattern?.FindRepetitionInterval();
                     repeatingRhythmPatterns.Add(currentPattern);
                 }
 
                 continuousPattern.Parent = currentPattern;
                 continuousPattern.Index = currentPattern.ContinuousPatterns.Count;
+
                 foreach (TaikoDifficultyHitObject hitObject in continuousPattern.HitObjects)
                 {
                     hitObject.Rhythm.RepeatingRhythmPattern = currentPattern;
                 }
+
                 currentPattern.ContinuousPatterns.Add(continuousPattern);
             });
 

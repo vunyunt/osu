@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Taiko.Objects;
@@ -55,12 +56,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// <param name="lastObject">The gameplay <see cref="HitObject"/> preceding <paramref name="hitObject"/>.</param>
         /// <param name="lastLastObject">The gameplay <see cref="HitObject"/> preceding <paramref name="lastObject"/>.</param>
         /// <param name="clockRate">The rate of the gameplay clock. Modified by speed-changing mods.</param>
+        /// <param name="hitWindow">The hit window for the beatmap.</param>
         /// <param name="objects">The list of all <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="centreHitObjects">The list of centre (don) <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="rimHitObjects">The list of rim (kat) <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="noteObjects">The list of <see cref="DifficultyHitObject"/>s that is a hit (i.e. not a drumroll or swell) in the current beatmap.</param>
         /// <param name="index">The position of this <see cref="DifficultyHitObject"/> in the <paramref name="objects"/> list.</param>
-        public TaikoDifficultyHitObject(HitObject hitObject, HitObject lastObject, HitObject lastLastObject, double clockRate,
+        public TaikoDifficultyHitObject(HitObject hitObject, HitObject lastObject, HitObject lastLastObject, double clockRate, double hitWindow,
                                         List<DifficultyHitObject> objects,
                                         List<TaikoDifficultyHitObject> centreHitObjects,
                                         List<TaikoDifficultyHitObject> rimHitObjects,
@@ -71,7 +73,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 
             // Create the Colour object, its properties should be filled in by TaikoDifficultyPreprocessor
             Colour = new TaikoDifficultyHitObjectColour();
-            Rhythm = getClosestRhythm(lastObject, lastLastObject, clockRate);
+            Rhythm = new TaikoDifficultyHitObjectRhythm(hitWindow, this);
 
             switch ((hitObject as Hit)?.Type)
             {
@@ -93,44 +95,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
                 NoteIndex = noteObjects.Count;
                 noteObjects.Add(this);
             }
-        }
-
-        /// <summary>
-        /// List of most common rhythm changes in taiko maps.
-        /// </summary>
-        /// <remarks>
-        /// The general guidelines for the values are:
-        /// <list type="bullet">
-        /// <item>rhythm changes with ratio closer to 1 (that are <i>not</i> 1) are harder to play,</item>
-        /// <item>speeding up is <i>generally</i> harder than slowing down (with exceptions of rhythm changes requiring a hand switch).</item>
-        /// </list>
-        /// </remarks>
-        private static readonly TaikoDifficultyHitObjectRhythm[] common_rhythms =
-        {
-            new TaikoDifficultyHitObjectRhythm(1, 1, 0.0),
-            new TaikoDifficultyHitObjectRhythm(2, 1, 0.3),
-            new TaikoDifficultyHitObjectRhythm(1, 2, 0.5),
-            new TaikoDifficultyHitObjectRhythm(3, 1, 0.3),
-            new TaikoDifficultyHitObjectRhythm(1, 3, 0.35),
-            new TaikoDifficultyHitObjectRhythm(3, 2, 0.6), // purposefully higher (requires hand switch in full alternating gameplay style)
-            new TaikoDifficultyHitObjectRhythm(2, 3, 0.4),
-            new TaikoDifficultyHitObjectRhythm(5, 4, 0.5),
-            new TaikoDifficultyHitObjectRhythm(4, 5, 0.7)
-        };
-
-        /// <summary>
-        /// Returns the closest rhythm change from <see cref="common_rhythms"/> required to hit this object.
-        /// </summary>
-        /// <param name="lastObject">The gameplay <see cref="HitObject"/> preceding this one.</param>
-        /// <param name="lastLastObject">The gameplay <see cref="HitObject"/> preceding <paramref name="lastObject"/>.</param>
-        /// <param name="clockRate">The rate of the gameplay clock.</param>
-        private TaikoDifficultyHitObjectRhythm getClosestRhythm(HitObject lastObject, HitObject lastLastObject, double clockRate)
-        {
-            double prevLength = (lastObject.StartTime - lastLastObject.StartTime) / clockRate;
-            double ratio = DeltaTime / prevLength;
-            TaikoDifficultyHitObjectRhythm rhythm = common_rhythms.OrderBy(x => Math.Abs(x.Ratio - ratio)).First();
-
-            return new TaikoDifficultyHitObjectRhythm(rhythm.Ratio, rhythm.Difficulty);
         }
 
         public TaikoDifficultyHitObject? PreviousMono(int backwardsIndex) => monoDifficultyHitObjects?.ElementAtOrDefault(MonoIndex - (backwardsIndex + 1));

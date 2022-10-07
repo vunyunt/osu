@@ -17,11 +17,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         public RepeatingRhythmPattern? RepeatingRhythmPattern;
 
         /// <summary>
-        /// The difficulty multiplier associated with this rhythm change.
-        /// </summary>
-        public readonly double Difficulty;
-
-        /// <summary>
         /// The ratio of current <see cref="osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject.DeltaTime"/>
         /// to previous <see cref="osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject.DeltaTime"/> for the rhythm change.
         /// A <see cref="Ratio"/> above 1 indicates a slow-down; a <see cref="Ratio"/> below 1 indicates a speed-up.
@@ -29,21 +24,24 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         public readonly double Ratio;
 
         /// <summary>
-        /// Creates an object representing a rhythm change.
+        /// The ratio of hit window to the interval of the note.
         /// </summary>
-        /// <param name="numerator">The numerator for <see cref="Ratio"/>.</param>
-        /// <param name="denominator">The denominator for <see cref="Ratio"/></param>
-        /// <param name="difficulty">The difficulty multiplier associated with this rhythm change.</param>
-        public TaikoDifficultyHitObjectRhythm(int numerator, int denominator, double difficulty)
-        {
-            Ratio = numerator / (double)denominator;
-            Difficulty = difficulty;
-        }
+        public readonly double Leniency;
 
-        public TaikoDifficultyHitObjectRhythm(double ratio, double difficulty)
+        public TaikoDifficultyHitObjectRhythm(double hitWindow, TaikoDifficultyHitObject current)
         {
-            Ratio = ratio;
-            Difficulty = difficulty;
+            var previous = current.Previous(0);
+
+            if (previous == null)
+            {
+                Ratio = 1;
+                Leniency = 1;
+
+                return;
+            }
+
+            Ratio = current.DeltaTime / previous.DeltaTime;
+            Leniency = hitWindow / current.DeltaTime;
         }
     }
 }

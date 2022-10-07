@@ -12,11 +12,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
     public class Peaks : Skill
     {
-        private const double rhythm_skill_multiplier = 0.2 * final_multiplier;
-        private const double colour_skill_multiplier = 0.375 * final_multiplier;
-        private const double stamina_skill_multiplier = 0.375 * final_multiplier;
+        private const double rhythm_skill_multiplier = 0.35 * final_multiplier;
+        private const double colour_skill_multiplier = 0.35 * final_multiplier;
+        private const double stamina_skill_multiplier = 0.4 * final_multiplier;
 
-        private const double final_multiplier = 0.0625;
+        private const double final_multiplier = 0.067;
 
         private readonly Rhythm rhythm;
         private readonly Colour colour;
@@ -69,8 +69,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
                 double rhythmPeak = rhythmPeaks[i] * rhythm_skill_multiplier;
                 double staminaPeak = staminaPeaks[i] * stamina_skill_multiplier;
 
-                double peak = norm(1.5, colourPeak, staminaPeak);
-                peak = norm(2, peak, rhythmPeak);
+                double peak = norm(2, colourPeak, rhythmPeak, staminaPeak);
 
                 // Sections with 0 strain are excluded to avoid worst-case time complexity of the following sort (e.g. /b/2351871).
                 // These sections will not contribute to the difficulty.

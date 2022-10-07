@@ -28,6 +28,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         public override int Version => 20220902;
 
+        private HitWindows hitWindows = new TaikoHitWindows();
+
         public TaikoDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
         {
@@ -51,17 +53,21 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
+            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
+
             List<DifficultyHitObject> difficultyHitObjects = new List<DifficultyHitObject>();
             List<TaikoDifficultyHitObject> centreObjects = new List<TaikoDifficultyHitObject>();
             List<TaikoDifficultyHitObject> rimObjects = new List<TaikoDifficultyHitObject>();
             List<TaikoDifficultyHitObject> noteObjects = new List<TaikoDifficultyHitObject>();
 
+            double hitWindow = hitWindows.WindowFor(HitResult.Ok);
+
             for (int i = 2; i < beatmap.HitObjects.Count; i++)
             {
                 difficultyHitObjects.Add(
                     new TaikoDifficultyHitObject(
-                        beatmap.HitObjects[i], beatmap.HitObjects[i - 1], beatmap.HitObjects[i - 2], clockRate, difficultyHitObjects,
-                        centreObjects, rimObjects, noteObjects, difficultyHitObjects.Count)
+                        beatmap.HitObjects[i], beatmap.HitObjects[i - 1], beatmap.HitObjects[i - 2], clockRate, hitWindow,
+                        difficultyHitObjects, centreObjects, rimObjects, noteObjects, difficultyHitObjects.Count)
                 );
             }
 
@@ -93,9 +99,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 if (colourRating < 2 && staminaRating > 8)
                     starRating *= 0.80;
             }
-
-            HitWindows hitWindows = new TaikoHitWindows();
-            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
 
             return new TaikoDifficultyAttributes
             {

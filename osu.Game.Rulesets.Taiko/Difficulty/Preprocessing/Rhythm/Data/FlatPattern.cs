@@ -18,7 +18,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public int Index;
 
-        public int AlternatingIndex = 0;
+        public int AlternatingIndex;
 
         /// <summary>
         /// The previous <see cref="FlatPattern"/> within the same <see cref="ContinuousPattern"/>.
@@ -32,19 +32,20 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public bool IsRepetitionOf(FlatPattern other)
         {
-            return Math.Abs(this.Ratio / other.Ratio - 1) < 0.05 && HitObjects.Count == other.HitObjects.Count;
+            return Math.Abs(Ratio / other.Ratio - 1) < 0.05 && HitObjects.Count == other.HitObjects.Count;
         }
 
         /// <summary>
-        /// This should be called after the <see cref="Parent"/> is set, as alternating patterns only count within the 
+        /// This should be called after the <see cref="Parent"/> is set, as alternating patterns only count within the
         /// same parent pattern.
         /// </summary>
         public void FindAlternatingIndex()
         {
             FlatPattern? alt = Previous?.Previous;
             FlatPattern? previousAlt = alt?.Previous;
+
             if (
-                alt != null && this.IsRepetitionOf(alt) &&
+                alt != null && alt.IsRepetitionOf(this) &&
                 (previousAlt == null || Previous!.IsRepetitionOf(previousAlt)))
             {
                 AlternatingIndex = alt.AlternatingIndex + 1;

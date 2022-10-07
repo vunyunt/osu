@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public int Length => ContinuousPatterns[0].Length * ContinuousPatterns.Count;
 
-        public int RepetitionInterval = 0;
+        public int RepetitionInterval;
 
         public bool IsRepetitionOf(RepeatingRhythmPattern other)
         {
@@ -36,6 +36,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         {
             RepeatingRhythmPattern? current = Previous;
             int interval = 1;
+
             while (interval < max_repetition_interval && current != null)
             {
                 interval += current.Length;
