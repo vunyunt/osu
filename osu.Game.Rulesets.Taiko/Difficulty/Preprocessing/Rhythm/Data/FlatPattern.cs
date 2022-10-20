@@ -6,7 +6,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 {
     /// <summary>
     /// A flat pattern is defined as a sequence of hit objects that has effectively no variation in rhythm, i.e. all
-    /// hit object within will have rhythm ratios of 1, with the exception of the first hit object.
+    /// hit object within will have rhythm ratios of almost 1, with the exception of the first two hit objects.
     /// </summary>
     public class FlatPattern
     {
@@ -14,16 +14,14 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public TaikoDifficultyHitObject FirstHitObject => HitObjects.First();
 
-        public ContinuousPattern Parent = null!;
+        public RepeatingRhythmPattern Parent = null!;
 
         public int Index;
 
-        public int AlternatingIndex = 0;
-
         /// <summary>
-        /// The previous <see cref="FlatPattern"/> within the same <see cref="ContinuousPattern"/>.
+        /// The previous <see cref="FlatPattern"/> within the same <see cref="RepeatingRhythmPattern"/>.
         /// </summary>
-        public FlatPattern? Previous => Index > 0 ? Parent.FlatPatterns[Index - 1] : null;
+        public FlatPattern? Previous;
 
         /// <summary>
         /// The <see cref="TaikoDifficultyHitObjectRhythm.Ratio"/> of the first hit object in this pattern.
@@ -32,23 +30,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public bool IsRepetitionOf(FlatPattern other)
         {
-            return Math.Abs(this.Ratio / other.Ratio - 1) < 0.05 && HitObjects.Count == other.HitObjects.Count;
-        }
+            if (HitObjects.Count != other.HitObjects.Count)
+                return false;
 
-        /// <summary>
-        /// This should be called after the <see cref="Parent"/> is set, as alternating patterns only count within the 
-        /// same parent pattern.
-        /// </summary>
-        public void FindAlternatingIndex()
-        {
-            FlatPattern? alt = Previous?.Previous;
-            FlatPattern? previousAlt = alt?.Previous;
-            if (
-                alt != null && this.IsRepetitionOf(alt) &&
-                (previousAlt == null || Previous!.IsRepetitionOf(previousAlt)))
-            {
-                AlternatingIndex = alt.AlternatingIndex + 1;
-            }
+            if (HitObjects.Count <= 1)
+                return Math.Abs(HitObjects[0].DeltaTime - other.HitObjects[0].DeltaTime) < 3;
+
+            return Math.Abs(HitObjects[1].DeltaTime - other.HitObjects[1].DeltaTime) < 3;
         }
     }
 }

@@ -12,8 +12,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
     {
         public FlatPattern? FlatPattern;
 
-        public ContinuousPattern? ContinuousPattern;
-
         public RepeatingRhythmPattern? RepeatingRhythmPattern;
 
         /// <summary>
