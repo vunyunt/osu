@@ -12,10 +12,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
     {
         public FlatPattern? FlatPattern;
 
-        public RepeatingRhythmPattern? RepeatingRhythmPattern;
+        public RepeatingPattern? RepeatingPattern;
 
         /// <summary>
-        /// The difficulty multiplier associated with this rhythm change.
+        /// The difficulty multiplier associated with this rhythm change.   
         /// </summary>
         public readonly double Difficulty;
 

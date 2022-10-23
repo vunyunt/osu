@@ -10,7 +10,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         public static void ProcessAndAssign(List<DifficultyHitObject> hitObjects)
         {
             List<FlatPattern> flatPatterns = encodeFlatPattern(hitObjects);
-            List<RepeatingRhythmPattern> repeatingRhythmPatterns = encodeRepeatingRhythmPattern(flatPatterns);
+            List<RepeatingPattern> repeatingRhythmPatterns = encodeRepeatingRhythmPattern(flatPatterns);
 
             // repeatingRhythmPatterns.ForEach(item =>
             // {
@@ -42,7 +42,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         private static List<FlatPattern> encodeFlatPattern(List<DifficultyHitObject> data)
         {
             List<FlatPattern> flatPatterns = new List<FlatPattern>();
-            FlatPattern? currentPattern = null;
             var enumerator = data.GetEnumerator();
 
             while (enumerator.MoveNext())
@@ -55,13 +54,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                 // adding a little bit more for good measure.
                 bool rhythmChanged = Math.Abs(taikoHitObject.DeltaTime - taikoHitObject.Previous(0)?.DeltaTime ?? 0) > 3;
 
-                if (currentPattern == null || rhythmChanged || willSpeedUp(taikoHitObject))
+                if (flatPatterns.Count == 0 || rhythmChanged || willSpeedUp(taikoHitObject))
                 {
-                    currentPattern = new FlatPattern
-                    {
-                        Previous = currentPattern
-                    };
-                    flatPatterns.Add(currentPattern);
+                    flatPatterns.Add(new FlatPattern(flatPatterns, flatPatterns.Count));
 
                     TaikoDifficultyHitObject? nextNote = taikoHitObject.NextNote(0);
 
@@ -71,7 +66,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                     {
                         // Bind the current object. Binding of the next object will be handled outside of the conditionals
                         // after moving the enumerator.
-                        bind(taikoHitObject, currentPattern);
+                        bind(taikoHitObject, flatPatterns[^1]);
 
                         if (!enumerator.MoveNext()) break;
 
@@ -79,48 +74,79 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                     }
                 }
 
-                bind(taikoHitObject, currentPattern);
+                bind(taikoHitObject, flatPatterns[^1]);
             }
 
             enumerator.Dispose();
             return flatPatterns;
         }
 
-        private static void bind(FlatPattern pattern, RepeatingRhythmPattern parent)
+        private static void bind(FlatPattern pattern, RepeatingPattern parent)
         {
             pattern.Parent = parent;
-            pattern.Index = parent.FlatPatterns.Count;
+            pattern.RepetitionIndex = parent.FlatPatterns.Count / parent.RepetitionLength;
             parent.FlatPatterns.Add(pattern);
             parent.Length = pattern.HitObjects.Count;
 
             foreach (TaikoDifficultyHitObject hitObject in pattern.HitObjects)
             {
-                hitObject.Rhythm.RepeatingRhythmPattern = parent;
+                hitObject.Rhythm.RepeatingPattern = parent;
             }
         }
 
-        private static List<RepeatingRhythmPattern> encodeRepeatingRhythmPattern(List<FlatPattern> data)
+        /// <summary>
+        /// Determines if the given <see cref="FlatPattern"/> should be appended to the given <see cref="RepeatingPattern"/>.
+        /// </summary>
+        private static bool shouldAppend(FlatPattern flatPattern, RepeatingPattern repeatingRhythmPattern)
         {
-            List<RepeatingRhythmPattern> repeatingRhythmPatterns = new List<RepeatingRhythmPattern>();
-            RepeatingRhythmPattern? currentPattern = null;
+            // Currently this should never be the case, but we are adding this check just in case.
+            if (repeatingRhythmPattern.FlatPatterns.Count == 0)
+            {
+                return true;
+            }
+
+            if (repeatingRhythmPattern.FlatPatterns.Count == 1)
+            {
+                if (repeatingRhythmPattern.FlatPatterns[0].IsRepetitionOf(flatPattern))
+                {
+                    repeatingRhythmPattern.RepetitionLength = 1;
+                    return true;
+                }
+
+                if (repeatingRhythmPattern.FlatPatterns[0].IsRepetitionOf(flatPattern.Next(0)))
+                {
+                    repeatingRhythmPattern.RepetitionLength = 2;
+                    return true;
+                }
+
+                return false;
+            }
+
+            // We only check the second final pattern because in both the cases of single repeating flat patterns and
+            // two alternating flat patterns, the second final pattern will be the same as the one passed in.
+            return repeatingRhythmPattern.FlatPatterns[^2].IsRepetitionOf(flatPattern);
+        }
+
+        private static List<RepeatingPattern> encodeRepeatingRhythmPattern(List<FlatPattern> data)
+        {
+            List<RepeatingPattern> repeatingRhythmPatterns = new List<RepeatingPattern>();
 
             data.ForEach(flatPattern =>
             {
-                if (currentPattern == null || !flatPattern.IsRepetitionOf(currentPattern.FlatPatterns[0]))
+                if (repeatingRhythmPatterns.Count == 0 || !shouldAppend(flatPattern, repeatingRhythmPatterns[^1]))
                 {
-                    currentPattern = new RepeatingRhythmPattern
-                    {
-                        Previous = currentPattern
-                    };
-                    currentPattern.Previous?.FindRepetitionInterval();
-                    repeatingRhythmPatterns.Add(currentPattern);
+                    repeatingRhythmPatterns.Add(new RepeatingPattern(repeatingRhythmPatterns, repeatingRhythmPatterns.Count));
+                    repeatingRhythmPatterns[^1].Previous(0)?.FindRepetitionInterval();
                 }
 
-                bind(flatPattern, currentPattern);
+                bind(flatPattern, repeatingRhythmPatterns[^1]);
             });
 
             // Find repetition interval for the final pattern
-            currentPattern?.FindRepetitionInterval();
+            if (repeatingRhythmPatterns.Count != 0)
+            {
+                repeatingRhythmPatterns[^1].FindRepetitionInterval();
+            }
 
             return repeatingRhythmPatterns;
         }
