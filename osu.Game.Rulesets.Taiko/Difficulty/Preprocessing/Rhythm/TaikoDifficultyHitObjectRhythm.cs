@@ -12,9 +12,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
     {
         public FlatPattern? FlatPattern;
 
-        public ContinuousPattern? ContinuousPattern;
-
-        public RepeatingRhythmPattern? RepeatingRhythmPattern;
+        public RepeatingPattern? RepeatingPattern;
 
         /// <summary>
         /// The ratio of current <see cref="osu.Game.Rulesets.Difficulty.Preprocessing.DifficultyHitObject.DeltaTime"/>
