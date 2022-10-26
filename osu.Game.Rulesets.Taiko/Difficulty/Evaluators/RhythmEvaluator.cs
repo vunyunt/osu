@@ -55,7 +55,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             difficulty += targetedBonus(ratio, 1, 0.5, 1);
 
             // Penalize ratios that are VERY near 1
-            difficulty -= targetedBonus(ratio, 1, 0.1, 1);
+            difficulty -= targetedBonus(ratio, 1, 0.3, 1);
 
             return difficulty;
         }
@@ -67,20 +67,15 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 
         private static double evaluateDifficultyOf(FlatPattern flatPattern)
         {
-            return sigmoid(flatPattern.AlternatingIndex, 2, 2, 0.5, 1) *
+            return sigmoid(flatPattern.RepetitionIndex, 2, 2, 0.5, 1) *
                    evaluateDifficultyOf(flatPattern.Parent) *
                    evaluateLeniencyPenalty(flatPattern.FirstHitObject.Rhythm.Leniency) *
                    evaluateRhythmChangeDifficulty(flatPattern.Ratio);
         }
 
-        private static double evaluateDifficultyOf(ContinuousPattern continuousPattern)
+        private static double evaluateDifficultyOf(RepeatingPattern repeatingRhythmPattern)
         {
-            return sigmoid(continuousPattern.Index, 2, 2, 0.5, 1) * evaluateDifficultyOf(continuousPattern.Parent);
-        }
-
-        private static double evaluateDifficultyOf(RepeatingRhythmPattern repeatingRhythmPattern)
-        {
-            return 2 * (1 - sigmoid(repeatingRhythmPattern.RepetitionInterval, 8, 8, 0.5, 1));
+            return 2 * (1 - sigmoid(repeatingRhythmPattern.RepetitionInterval, 16, 16, 0.5, 1));
         }
 
         public static double EvaluateDifficultyOf(DifficultyHitObject hitObject)
@@ -88,12 +83,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             TaikoDifficultyHitObjectRhythm rhythm = ((TaikoDifficultyHitObject)hitObject).Rhythm;
             double difficulty = 0.0d;
 
-            if (rhythm.FlatPattern?.FirstHitObject == hitObject) // Difficulty for MonoStreak
+            if (rhythm.FlatPattern?.FirstHitObject == hitObject) // Difficulty for FlatPattern
                 difficulty += evaluateDifficultyOf(rhythm.FlatPattern);
-            if (rhythm.ContinuousPattern?.FirstHitObject == hitObject) // Difficulty for AlternatingMonoPattern
-                difficulty += evaluateDifficultyOf(rhythm.ContinuousPattern);
-            if (rhythm.RepeatingRhythmPattern?.FirstHitObject == hitObject) // Difficulty for RepeatingHitPattern
-                difficulty += evaluateDifficultyOf(rhythm.RepeatingRhythmPattern);
 
             return difficulty;
         }
