@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using osu.Game.Rulesets.Difficulty.Preprocessing;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 {
@@ -89,6 +90,66 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             this.allPatterns = allPatterns;
             Index = index;
         }
+
+
+        private static void bind(TaikoDifficultyHitObject hitObject, FlatPattern pattern)
+        {
+            hitObject.Rhythm.FlatPattern = pattern;
+            pattern.HitObjects.Add(hitObject);
+        }
+
+        // Detect if the next note will have an interval lower than the current one. We are allowing a margin of error
+        // of 3ms for good measure.
+        private static bool willSpeedUp(TaikoDifficultyHitObject hitObject)
+        {
+            return (hitObject.NextNote(0)?.DeltaTime ?? double.MaxValue) < (hitObject.DeltaTime - 3);
+        }
+
+        public static List<FlatPattern> Encode(List<DifficultyHitObject> data)
+        {
+            List<FlatPattern> flatPatterns = new List<FlatPattern>();
+            var enumerator = data.GetEnumerator();
+
+            while (enumerator.MoveNext())
+            {
+                TaikoDifficultyHitObject taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current!;
+
+                // A rhythm change is considered to have occured if the delta time difference between the current object
+                // and the previous object is greater than 3ms. This is to account for the fact that note timing is
+                // stored in ms, hence will have a margin of error of up to 2ms (1ms either way for each note). We are
+                // adding a little bit more for good measure.
+                bool rhythmChanged = Math.Abs(taikoHitObject.DeltaTime - taikoHitObject.Previous(0)?.DeltaTime ?? 0) > 3;
+
+                if (flatPatterns.Count == 0 || rhythmChanged || willSpeedUp(taikoHitObject))
+                {
+                    flatPatterns.Add(new FlatPattern(flatPatterns, flatPatterns.Count));
+
+                    TaikoDifficultyHitObject? nextNote = taikoHitObject.NextNote(0);
+
+                    // If the next next note is not a speed up, skip the check and add it to the current pattern. This
+                    // is because we want to always group notes to the faster pattern.
+                    if (nextNote != null && !willSpeedUp(nextNote))
+                    {
+                        // Bind the current object. Binding of the next object will be handled outside of the conditionals
+                        // after moving the enumerator.
+                        bind(taikoHitObject, flatPatterns[^1]);
+
+                        if (!enumerator.MoveNext()) break;
+
+                        taikoHitObject = (TaikoDifficultyHitObject)enumerator.Current!;
+                    }
+                }
+
+                bind(taikoHitObject, flatPatterns[^1]);
+            }
+
+            enumerator.Dispose();
+
+            flatPatterns.ForEach(pattern => pattern.CalculateIntervals());
+
+            return flatPatterns;
+        }
+
 
         /// <summary>
         /// Computes <see cref="HitObjectInterval"/>, <see cref="HitObjectIntervalRatio"/>, <see cref="StartTimeInterval"/>,

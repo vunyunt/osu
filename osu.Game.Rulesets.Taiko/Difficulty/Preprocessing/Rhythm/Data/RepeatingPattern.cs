@@ -53,6 +53,72 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             Index = index;
         }
 
+
+        private static void bind(FlatPattern pattern, RepeatingPattern parent)
+        {
+            pattern.Parent = parent;
+            pattern.RepetitionIndex = parent.FlatPatterns.Count / parent.RepetitionLength;
+            parent.FlatPatterns.Add(pattern);
+            parent.Length = pattern.HitObjects.Count;
+
+            foreach (TaikoDifficultyHitObject hitObject in pattern.HitObjects)
+            {
+                hitObject.Rhythm.RepeatingPattern = parent;
+            }
+        }
+
+        /// <summary>
+        /// Determines if the given <see cref="FlatPattern"/> should be appended to the given <see cref="RepeatingPattern"/>.
+        /// </summary>
+        private static bool shouldAppend(FlatPattern flatPattern, RepeatingPattern repeatingRhythmPattern)
+        {
+            // Currently this should never be the case, but we are adding this check just in case.
+            if (repeatingRhythmPattern.FlatPatterns.Count == 0)
+            {
+                return true;
+            }
+
+            if (repeatingRhythmPattern.FlatPatterns.Count == 1)
+            {
+                if (repeatingRhythmPattern.FlatPatterns[0].IsRepetitionOf(flatPattern))
+                {
+                    repeatingRhythmPattern.RepetitionLength = 1;
+                    return true;
+                }
+
+                if (repeatingRhythmPattern.FlatPatterns[0].IsRepetitionOf(flatPattern.Next(0)))
+                {
+                    repeatingRhythmPattern.RepetitionLength = 2;
+                    return true;
+                }
+
+                return false;
+            }
+
+            // We only check the second final pattern because in both the cases of single repeating flat patterns and
+            // two alternating flat patterns, the second final pattern will be the same as the one passed in.
+            return repeatingRhythmPattern.FlatPatterns[^2].IsRepetitionOf(flatPattern);
+        }
+
+        public static List<RepeatingPattern> Encode(List<FlatPattern> data)
+        {
+            List<RepeatingPattern> repeatingRhythmPatterns = new List<RepeatingPattern>();
+
+            data.ForEach(flatPattern =>
+            {
+                if (repeatingRhythmPatterns.Count == 0 || !shouldAppend(flatPattern, repeatingRhythmPatterns[^1]))
+                {
+                    repeatingRhythmPatterns.Add(new RepeatingPattern(repeatingRhythmPatterns, repeatingRhythmPatterns.Count));
+                }
+
+                bind(flatPattern, repeatingRhythmPatterns[^1]);
+            });
+
+            repeatingRhythmPatterns.ForEach(pattern => pattern.FindRepetitionInterval());
+
+            return repeatingRhythmPatterns;
+        }
+
         /// <summary>
         /// Repetition here is defined as a <see cref="RepeatingPattern"/> that contains the same <see cref="FlatPattern"/>s.
         /// The amount of <see cref="FlatPattern"/>s contained is not taken into consideration. However, the order of them
