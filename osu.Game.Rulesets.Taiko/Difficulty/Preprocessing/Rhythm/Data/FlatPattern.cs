@@ -34,6 +34,16 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public TaikoDifficultyHitObject FirstHitObject => HitObjects.First();
 
+        /// <summary>
+        /// Start time of the first hit object.
+        /// </summary>
+        public double StartTime => HitObjects.First().StartTime;
+
+        /// <summary>
+        /// The interval between the first and last hit object
+        /// </summary>
+        public double Duration => HitObjects.Last().StartTime - HitObjects.First().StartTime;
+
         public FlatPattern? Previous(int backwardsIndex) => allPatterns.ElementAtOrDefault(Index - (backwardsIndex + 1));
 
         public FlatPattern? Next(int forwardsIndex) => allPatterns.ElementAtOrDefault(Index + (forwardsIndex + 1));
@@ -43,10 +53,64 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// </summary>
         public double Ratio => HitObjects[0].Rhythm.Ratio;
 
+        /// <summary>
+        /// The interval in ms of each hit object in this <see cref="FlatPattern"/>. This is only defined if there is
+        /// more than two hit objects in this <see cref="FlatPattern"/>.
+        /// </summary>
+        public double? HitObjectInterval = null;
+
+        /// <summary>
+        /// The ratio of <see cref="HitObjectInterval"/> between this and the previous <see cref="FlatPattern"/>. In the
+        /// case where one or both of the <see cref="HitObjectInterval"/> is undefined, this will have a value of 1.
+        /// </summary>
+        public double HitObjectIntervalRatio = 1;
+
+        /// <summary>
+        /// The interval between the <see cref="StartTime"/> of this and the previous <see cref="FlatPattern"/>. This is
+        /// only defined if there is a previous <see cref="FlatPattern"/>.
+        /// </summary>
+        public double? StartTimeInterval = null;
+
+        /// <summary>
+        /// The ratio of <see cref="StartTimeInterval"/> between this and the previous <see cref="FlatPattern"/>. In the
+        /// case where one or both of the <see cref="StartTimeInterval"/> is undefined, this will have a value of 1.
+        /// </summary>
+        public double StartTimeIntervalRatio = 1;
+
+        /// <summary>
+        /// The index of this <see cref="FlatPattern"/> in a list of evenly spaced <see cref="FlatPattern"/>s, defined 
+        /// as having even <see cref="StartTimeInterval"/>s.
+        /// </summary>
+        /// TODO: Need to be named better
+        public int EvenStartTimeIndex;
+
         public FlatPattern(List<FlatPattern> allPatterns, int index)
         {
             this.allPatterns = allPatterns;
             Index = index;
+        }
+
+        /// <summary>
+        /// Computes <see cref="HitObjectInterval"/>, <see cref="HitObjectIntervalRatio"/>, <see cref="StartTimeInterval"/>,
+        /// and <see cref="StartTimeIntervalRatio"/> for this <see cref="FlatPattern"/>.
+        /// </summary>
+        public void CalculateIntervals()
+        {
+            HitObjectInterval = HitObjects.Count < 2 ? null : HitObjects[1].StartTime - HitObjects[0].StartTime;
+            FlatPattern? previous = Previous(0);
+
+            if (previous?.HitObjectInterval != null && HitObjectInterval != null)
+            {
+                HitObjectIntervalRatio = HitObjectInterval.Value / previous.HitObjectInterval.Value;
+            }
+
+            if (previous == null)
+            {
+                return;
+            }
+
+            StartTimeInterval = StartTime - previous.StartTime;
+            StartTimeIntervalRatio = (double)(StartTimeInterval / (previous.StartTimeInterval ?? StartTimeInterval));
         }
 
         /// <summary>

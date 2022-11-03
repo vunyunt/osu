@@ -78,6 +78,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
             }
 
             enumerator.Dispose();
+
+            flatPatterns.ForEach(pattern => pattern.CalculateIntervals());
+
             return flatPatterns;
         }
 
@@ -136,17 +139,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                 if (repeatingRhythmPatterns.Count == 0 || !shouldAppend(flatPattern, repeatingRhythmPatterns[^1]))
                 {
                     repeatingRhythmPatterns.Add(new RepeatingPattern(repeatingRhythmPatterns, repeatingRhythmPatterns.Count));
-                    repeatingRhythmPatterns[^1].Previous(0)?.FindRepetitionInterval();
                 }
 
                 bind(flatPattern, repeatingRhythmPatterns[^1]);
             });
 
-            // Find repetition interval for the final pattern
-            if (repeatingRhythmPatterns.Count != 0)
-            {
-                repeatingRhythmPatterns[^1].FindRepetitionInterval();
-            }
+            repeatingRhythmPatterns.ForEach(pattern => pattern.FindRepetitionInterval());
 
             return repeatingRhythmPatterns;
         }
