@@ -22,6 +22,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// </summary>
         public double Duration => Children.Last().StartTime - Children.First().StartTime;
 
+        /// <summary>
+        /// The ratio of <see cref="Duration" /> between this and the previous <see cref="EvenHitObjects" /> 
+        /// </summary>
+        public double DurationRatio => Previous != null ? Duration / Previous.Duration : 1;
+
         public EvenHitObjects? Previous;
 
         /// <summary>
