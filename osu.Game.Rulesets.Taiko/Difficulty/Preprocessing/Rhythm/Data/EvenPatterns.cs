@@ -9,7 +9,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public double ChildrenInterval => Children.Count > 1 ? Children[1].Interval : Children[0].Interval;
 
-        public double IntervalRatio => ChildrenInterval / Previous?.ChildrenInterval ?? double.PositiveInfinity;
+        public double IntervalRatio => ChildrenInterval / Previous?.ChildrenInterval ?? 1;
 
         public TaikoDifficultyHitObject FirstHitObject => Children[0].FirstHitObject;
 
