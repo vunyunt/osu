@@ -32,7 +32,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return multiplier * Math.Exp(Math.E * -(Math.Pow(ratio - targetRatio, 2) / Math.Pow(width, 2)));
         }
 
-        private static double evaluateRhythmChangeDifficulty(double ratio)
+        private static double ratioDifficulty(double ratio)
         {
             // Sum of n = 8 terms of periodic penalty. A more common denominator will be penalized multiple time, hence
             // simpler rhythm change will be penalized more.
@@ -65,17 +65,14 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return sigmoid(leniency, 0.6, 0.6, 0.5, 1);
         }
 
-        private static double evaluateDifficultyOf(FlatPattern flatPattern)
+        private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects)
         {
-            return sigmoid(flatPattern.RepetitionIndex, 2, 2, 0.5, 1) *
-                   evaluateDifficultyOf(flatPattern.Parent) *
-                   evaluateLeniencyPenalty(flatPattern.FirstHitObject.Rhythm.Leniency) *
-                   evaluateRhythmChangeDifficulty(flatPattern.Ratio);
+            return ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
         }
 
-        private static double evaluateDifficultyOf(RepeatingPattern repeatingRhythmPattern)
+        private static double evaluateDifficultyOf(EvenPatterns evenPatterns)
         {
-            return 2 * (1 - sigmoid(repeatingRhythmPattern.RepetitionInterval, 16, 16, 0.5, 1));
+            return ratioDifficulty(evenPatterns.IntervalRatio);
         }
 
         public static double EvaluateDifficultyOf(DifficultyHitObject hitObject)
@@ -83,8 +80,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             TaikoDifficultyHitObjectRhythm rhythm = ((TaikoDifficultyHitObject)hitObject).Rhythm;
             double difficulty = 0.0d;
 
-            if (rhythm.FlatPattern?.FirstHitObject == hitObject) // Difficulty for FlatPattern
-                difficulty += evaluateDifficultyOf(rhythm.FlatPattern);
+            if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for FlatPattern
+                difficulty += evaluateDifficultyOf(rhythm.EvenHitObjects);
+            if (rhythm.EvenPatterns?.FirstHitObject == hitObject)
+                difficulty += evaluateDifficultyOf(rhythm.EvenPatterns);
 
             return difficulty;
         }
