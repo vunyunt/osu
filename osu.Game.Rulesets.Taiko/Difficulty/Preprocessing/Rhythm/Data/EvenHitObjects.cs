@@ -25,11 +25,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         public EvenHitObjects? Previous;
 
         /// <summary>
-        /// The <see cref="TaikoDifficultyHitObjectRhythm.Ratio"/> of the first hit object in this pattern.
-        /// </summary>
-        public double Ratio => Children[0].Rhythm.Ratio;
-
-        /// <summary>
         /// The interval in ms of each hit object in this <see cref="EvenHitObjects"/>. This is only defined if there is
         /// more than two hit objects in this <see cref="EvenHitObjects"/>.
         /// </summary>
@@ -44,16 +39,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// <summary>
         /// The interval between the <see cref="StartTime"/> of this and the previous <see cref="EvenHitObjects"/>.
         /// </summary>
-        public double StartTimeInterval = double.PositiveInfinity;
-
-        public double Interval => StartTimeInterval;
-
-        /// <summary>
-        /// The index of this <see cref="EvenHitObjects"/> in a list of evenly spaced <see cref="EvenHitObjects"/>s, defined
-        /// as having even <see cref="StartTimeInterval"/>s.
-        /// </summary>
-        /// TODO: Need to be named better
-        public int EvenStartTimeIndex = 0;
+        public double Interval { get; private set; } = double.PositiveInfinity;
 
         public EvenHitObjects(EvenHitObjects? previous, List<TaikoDifficultyHitObject> data, ref int i)
             : base(data, ref i, 3)
@@ -96,7 +82,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
                 return;
             }
 
-            StartTimeInterval = StartTime - Previous.StartTime;
+            Interval = StartTime - Previous.StartTime;
         }
 
         /// <summary>
