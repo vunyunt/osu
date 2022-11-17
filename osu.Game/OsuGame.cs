@@ -179,6 +179,8 @@ namespace osu.Game
 
         private Bindable<string> configRuleset;
 
+        private Bindable<bool> applySafeAreaConsiderations;
+
         private Bindable<float> uiScale;
 
         private Bindable<string> configSkin;
@@ -280,10 +282,7 @@ namespace osu.Game
             configRuleset = LocalConfig.GetBindable<string>(OsuSetting.Ruleset);
             uiScale = LocalConfig.GetBindable<float>(OsuSetting.UIScale);
 
-            var preferredRuleset = int.TryParse(configRuleset.Value, out int rulesetId)
-                // int parsing can be removed 20220522
-                ? RulesetStore.GetRuleset(rulesetId)
-                : RulesetStore.GetRuleset(configRuleset.Value);
+            var preferredRuleset = RulesetStore.GetRuleset(configRuleset.Value);
 
             try
             {
@@ -312,6 +311,9 @@ namespace osu.Game
 
             SelectedMods.BindValueChanged(modsChanged);
             Beatmap.BindValueChanged(beatmapChanged, true);
+
+            applySafeAreaConsiderations = LocalConfig.GetBindable<bool>(OsuSetting.SafeAreaConsiderations);
+            applySafeAreaConsiderations.BindValueChanged(apply => SafeAreaContainer.SafeAreaOverrideEdges = apply.NewValue ? SafeAreaOverrideEdges : Edges.All, true);
         }
 
         private ExternalLinkOpener externalLinkOpener;
@@ -908,19 +910,6 @@ namespace osu.Game
 
             loadComponentSingleFile(new BackgroundBeatmapProcessor(), Add);
 
-            chatOverlay.State.BindValueChanged(_ => updateChatPollRate());
-            // Multiplayer modes need to increase poll rate temporarily.
-            API.Activity.BindValueChanged(_ => updateChatPollRate(), true);
-
-            void updateChatPollRate()
-            {
-                channelManager.HighPollRate.Value =
-                    chatOverlay.State.Value == Visibility.Visible
-                    || API.Activity.Value is UserActivity.InLobby
-                    || API.Activity.Value is UserActivity.InMultiplayerGame
-                    || API.Activity.Value is UserActivity.SpectatingMultiplayerGame;
-            }
-
             Add(difficultyRecommender);
             Add(externalLinkOpener = new ExternalLinkOpener());
             Add(new MusicKeyBindingHandler());
@@ -999,6 +988,9 @@ namespace osu.Game
         private void showOverlayAboveOthers(OverlayContainer overlay, OverlayContainer[] otherOverlays)
         {
             otherOverlays.Where(o => o != overlay).ForEach(o => o.Hide());
+
+            Settings.Hide();
+            Notifications.Hide();
 
             // Partially visible so leave it at the current depth.
             if (overlay.IsPresent)

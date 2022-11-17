@@ -10,13 +10,14 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Colour;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm;
+using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 {
     /// <summary>
     /// Represents a single hit object in taiko difficulty calculation.
     /// </summary>
-    public class TaikoDifficultyHitObject : DifficultyHitObject
+    public class TaikoDifficultyHitObject : DifficultyHitObject, IHasInterval
     {
         /// <summary>
         /// The list of all <see cref="TaikoDifficultyHitObject"/> of the same colour as this <see cref="TaikoDifficultyHitObject"/> in the beatmap.
@@ -48,6 +49,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// by other skills in the future.
         /// </summary>
         public readonly TaikoDifficultyHitObjectColour Colour;
+
+        public double Interval => DeltaTime;
 
         /// <summary>
         /// Creates a new difficulty hit object.
