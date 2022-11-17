@@ -10,9 +10,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
     /// </summary>
     public class TaikoDifficultyHitObjectRhythm
     {
-        public FlatPattern? FlatPattern;
+        public EvenHitObjects? EvenHitObjects;
 
-        public RepeatingPattern? RepeatingPattern;
+        public EvenPatterns? EvenPatterns;
 
         /// <summary>
         /// The difficulty multiplier associated with this rhythm change.   
