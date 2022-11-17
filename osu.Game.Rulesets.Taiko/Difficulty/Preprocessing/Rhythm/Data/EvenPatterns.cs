@@ -15,8 +15,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public IEnumerable<TaikoDifficultyHitObject> AllHitObjects => Children.SelectMany(child => child.Children);
 
-        private EvenPatterns(List<EvenHitObjects> data, ref int i) : base(data, ref i, 3)
+        private EvenPatterns(EvenPatterns? previous, List<EvenHitObjects> data, ref int i)
+            : base(data, ref i, 3)
         {
+            Previous = previous;
+
             foreach (TaikoDifficultyHitObject hitObject in AllHitObjects)
             {
                 hitObject.Rhythm.EvenPatterns = this;
@@ -30,10 +33,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             // Index does not need to be incremented, as it is handled within EvenRhythm's constructor.
             for (int i = 0; i < data.Count;)
             {
-                evenPatterns.Add(new EvenPatterns(data, ref i)
-                {
-                    Previous = evenPatterns.Count > 0 ? evenPatterns[evenPatterns.Count - 1] : null
-                });
+                EvenPatterns? previous = evenPatterns.Count > 0 ? evenPatterns[^1] : null;
+                evenPatterns.Add(new EvenPatterns(previous, data, ref i));
             }
 
             return evenPatterns;

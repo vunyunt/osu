@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using osu.Game.Rulesets.Difficulty.Preprocessing;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 {
@@ -34,7 +33,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// The interval in ms of each hit object in this <see cref="EvenHitObjects"/>. This is only defined if there is
         /// more than two hit objects in this <see cref="EvenHitObjects"/>.
         /// </summary>
-        public double? HitObjectInterval = null;
+        public double? HitObjectInterval;
 
         /// <summary>
         /// The ratio of <see cref="HitObjectInterval"/> between this and the previous <see cref="EvenHitObjects"/>. In the
@@ -50,7 +49,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         public double Interval => StartTimeInterval;
 
         /// <summary>
-        /// The index of this <see cref="EvenHitObjects"/> in a list of evenly spaced <see cref="EvenHitObjects"/>s, defined 
+        /// The index of this <see cref="EvenHitObjects"/> in a list of evenly spaced <see cref="EvenHitObjects"/>s, defined
         /// as having even <see cref="StartTimeInterval"/>s.
         /// </summary>
         /// TODO: Need to be named better
@@ -61,7 +60,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         {
             Previous = previous;
 
-            foreach (var hitObject in base.Children)
+            foreach (var hitObject in Children)
             {
                 hitObject.Rhythm.EvenHitObjects = this;
             }
@@ -74,11 +73,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             List<EvenHitObjects> flatPatterns = new List<EvenHitObjects>();
 
             // Index does not need to be incremented, as it is handled within EvenRhythm's constructor.
-            EvenHitObjects? current = null;
             for (int i = 0; i < data.Count;)
             {
-                current = new EvenHitObjects(current, data, ref i);
-                flatPatterns.Add(current);
+                EvenHitObjects? previous = flatPatterns.Count > 0 ? flatPatterns[^1] : null;
+                flatPatterns.Add(new EvenHitObjects(previous, data, ref i));
             }
 
             return flatPatterns;

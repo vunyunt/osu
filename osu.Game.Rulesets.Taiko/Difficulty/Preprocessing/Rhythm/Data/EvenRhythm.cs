@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using osu.Game.Rulesets.Difficulty.Utils;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 {
@@ -19,7 +18,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         }
 
         /// <summary>
-        /// Create a new <see cref="EvenRhythm{ChildType}"/> from a list of <see cref="IHasInterval"/>s, and add 
+        /// Create a new <see cref="EvenRhythm{ChildType}"/> from a list of <see cref="IHasInterval"/>s, and add
         /// them to the <see cref="Children"/> list until the end of the group.
         /// </summary>
         ///
@@ -33,7 +32,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// <param name="marginOfError">
         /// The margin of error for the interval, within of which no interval change is considered to have occured.
         /// </param>
-        public EvenRhythm(List<ChildType> data, ref int i, double marginOfError)
+        protected EvenRhythm(List<ChildType> data, ref int i, double marginOfError)
         {
             List<ChildType> children = new List<ChildType>();
             Children = children;
