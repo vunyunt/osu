@@ -25,7 +25,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// <summary>
         /// The ratio of <see cref="Duration" /> between this and the previous <see cref="EvenHitObjects" /> 
         /// </summary>
-        public double DurationRatio => Previous != null ? Duration / Previous.Duration : 1;
+        public double DurationRatio = 1;
 
         public EvenHitObjects? Previous;
 
@@ -88,6 +88,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             }
 
             Interval = StartTime - Previous.StartTime;
+
+            if (Children.Count > 1 && Previous.Children.Count > 1)
+            {
+                DurationRatio = Duration / Previous.Duration;
+            }
         }
 
         /// <summary>
