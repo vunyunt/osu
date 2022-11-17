@@ -67,7 +67,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 
         private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects)
         {
-            return ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
+            return ratioDifficulty(evenHitObjects.HitObjectIntervalRatio) + ratioDifficulty(evenHitObjects.DurationRatio);
         }
 
         private static double evaluateDifficultyOf(EvenPatterns evenPatterns)
@@ -80,9 +80,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             TaikoDifficultyHitObjectRhythm rhythm = ((TaikoDifficultyHitObject)hitObject).Rhythm;
             double difficulty = 0.0d;
 
-            if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for FlatPattern
+            if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for EvenHitObjects
                 difficulty += evaluateDifficultyOf(rhythm.EvenHitObjects);
-            if (rhythm.EvenPatterns?.FirstHitObject == hitObject)
+            if (rhythm.EvenPatterns?.FirstHitObject == hitObject) // Difficulty for EvenPatterns
                 difficulty += evaluateDifficultyOf(rhythm.EvenPatterns);
 
             return difficulty;
