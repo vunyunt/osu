@@ -81,7 +81,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             double difficulty = 0.0d;
 
             if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for EvenHitObjects
-                difficulty += evaluateDifficultyOf(rhythm.EvenHitObjects);
+                difficulty += 0.5 * evaluateDifficultyOf(rhythm.EvenHitObjects);
             if (rhythm.EvenPatterns?.FirstHitObject == hitObject) // Difficulty for EvenPatterns
                 difficulty += evaluateDifficultyOf(rhythm.EvenPatterns);
 
