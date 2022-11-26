@@ -1,3 +1,6 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -23,7 +26,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         public double Duration => Children.Last().StartTime - Children.First().StartTime;
 
         /// <summary>
-        /// The ratio of <see cref="Duration" /> between this and the previous <see cref="EvenHitObjects" /> 
+        /// The ratio of <see cref="Duration" /> between this and the previous <see cref="EvenHitObjects" />
         /// </summary>
         public double DurationRatio = 1;
 
@@ -46,8 +49,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// </summary>
         public double Interval { get; private set; } = double.PositiveInfinity;
 
-        public EvenHitObjects(EvenHitObjects? previous, List<TaikoDifficultyHitObject> data, ref int i)
-            : base(data, ref i, 3)
+        public EvenHitObjects(EvenHitObjects? previous, List<TaikoDifficultyHitObject> data, ref int i, double hitWindow)
+            : base(data, ref i, 2, hitWindow)
         {
             Previous = previous;
 
@@ -59,7 +62,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             calculateIntervals();
         }
 
-        public static List<EvenHitObjects> GroupHitObjects(List<TaikoDifficultyHitObject> data)
+        public static List<EvenHitObjects> GroupHitObjects(List<TaikoDifficultyHitObject> data, double hitWindow)
         {
             List<EvenHitObjects> flatPatterns = new List<EvenHitObjects>();
 
@@ -67,7 +70,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             for (int i = 0; i < data.Count;)
             {
                 EvenHitObjects? previous = flatPatterns.Count > 0 ? flatPatterns[^1] : null;
-                flatPatterns.Add(new EvenHitObjects(previous, data, ref i));
+                flatPatterns.Add(new EvenHitObjects(previous, data, ref i, hitWindow));
             }
 
             return flatPatterns;

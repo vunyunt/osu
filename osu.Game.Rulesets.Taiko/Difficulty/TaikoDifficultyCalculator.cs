@@ -65,8 +65,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 );
             }
 
+            HitWindows hitWindows = new TaikoHitWindows();
+            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
+
             TaikoColourDifficultyPreprocessor.ProcessAndAssign(difficultyHitObjects);
-            TaikoRhythmDifficultyPreprocessor.ProcessAndAssign(noteObjects);
+            TaikoRhythmDifficultyPreprocessor.ProcessAndAssign(noteObjects, hitWindows.WindowFor(HitResult.Great) / clockRate);
 
             return difficultyHitObjects;
         }

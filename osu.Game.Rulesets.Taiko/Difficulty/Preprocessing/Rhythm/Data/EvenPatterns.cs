@@ -1,3 +1,6 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using System.Linq;
 using System.Collections.Generic;
 
@@ -15,8 +18,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public IEnumerable<TaikoDifficultyHitObject> AllHitObjects => Children.SelectMany(child => child.Children);
 
-        private EvenPatterns(EvenPatterns? previous, List<EvenHitObjects> data, ref int i)
-            : base(data, ref i, 3)
+        private EvenPatterns(EvenPatterns? previous, List<EvenHitObjects> data, ref int i, double hitWindow)
+            : base(data, ref i, 3, hitWindow)
         {
             Previous = previous;
 
@@ -26,7 +29,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             }
         }
 
-        public static List<EvenPatterns> GroupEvenPatterns(List<EvenHitObjects> data)
+        public static List<EvenPatterns> GroupPatterns(List<EvenHitObjects> data, double hitWindow)
         {
             List<EvenPatterns> evenPatterns = new List<EvenPatterns>();
 
@@ -34,7 +37,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             for (int i = 0; i < data.Count;)
             {
                 EvenPatterns? previous = evenPatterns.Count > 0 ? evenPatterns[^1] : null;
-                evenPatterns.Add(new EvenPatterns(previous, data, ref i));
+                evenPatterns.Add(new EvenPatterns(previous, data, ref i, hitWindow));
             }
 
             return evenPatterns;
