@@ -15,17 +15,20 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
     /// </summary>
     public class Rhythm : StrainDecaySkill
     {
-        protected override double SkillMultiplier => 0.24;
+        protected override double SkillMultiplier => 0.27;
         protected override double StrainDecayBase => 0.4;
 
-        public Rhythm(Mod[] mods)
+        private double greatHitWindow;
+
+        public Rhythm(Mod[] mods, double greatHitWindow)
             : base(mods)
         {
+            this.greatHitWindow = greatHitWindow;
         }
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
-            double difficulty = RhythmEvaluator.EvaluateDifficultyOf(current);
+            double difficulty = RhythmEvaluator.EvaluateDifficultyOf(current, greatHitWindow);
             return difficulty;
         }
     }

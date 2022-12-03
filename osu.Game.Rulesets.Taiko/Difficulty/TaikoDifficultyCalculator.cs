@@ -28,8 +28,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         public override int Version => 20220902;
 
-        private HitWindows hitWindows = new TaikoHitWindows();
-
         public TaikoDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
         {
@@ -37,9 +35,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
         {
+            HitWindows hitWindows = new HitWindows();
+            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
+
             return new Skill[]
             {
-                new Peaks(mods)
+                new Peaks(mods, hitWindows.WindowFor(HitResult.Great))
             };
         }
 
@@ -53,6 +54,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
+            HitWindows hitWindows = new HitWindows();
             hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
 
             List<DifficultyHitObject> difficultyHitObjects = new List<DifficultyHitObject>();
@@ -60,19 +62,15 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             List<TaikoDifficultyHitObject> rimObjects = new List<TaikoDifficultyHitObject>();
             List<TaikoDifficultyHitObject> noteObjects = new List<TaikoDifficultyHitObject>();
 
-            double hitWindow = hitWindows.WindowFor(HitResult.Ok);
-
             for (int i = 2; i < beatmap.HitObjects.Count; i++)
             {
                 difficultyHitObjects.Add(
                     new TaikoDifficultyHitObject(
-                        beatmap.HitObjects[i], beatmap.HitObjects[i - 1], beatmap.HitObjects[i - 2], clockRate, hitWindow,
-                        difficultyHitObjects, centreObjects, rimObjects, noteObjects, difficultyHitObjects.Count)
+                        beatmap.HitObjects[i], beatmap.HitObjects[i - 1], beatmap.HitObjects[i - 2], clockRate,
+                        hitWindows.WindowFor(HitResult.Ok) / clockRate, difficultyHitObjects, centreObjects, rimObjects,
+                        noteObjects, difficultyHitObjects.Count)
                 );
             }
-
-            HitWindows hitWindows = new TaikoHitWindows();
-            hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
 
             TaikoColourDifficultyPreprocessor.ProcessAndAssign(difficultyHitObjects);
             TaikoRhythmDifficultyPreprocessor.ProcessAndAssign(noteObjects, hitWindows.WindowFor(HitResult.Great) / clockRate);
@@ -87,11 +85,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             var combined = (Peaks)skills[0];
 
-            double colourRating = combined.ColourDifficultyValue * difficulty_multiplier;
-            double rhythmRating = combined.RhythmDifficultyValue * difficulty_multiplier;
-            double staminaRating = combined.StaminaDifficultyValue * difficulty_multiplier;
+            double colourRating = combined.ColourDifficultyValue;
+            double rhythmRating = combined.RhythmDifficultyValue;
+            double staminaRating = combined.StaminaDifficultyValue;
 
-            double combinedRating = combined.DifficultyValue() * difficulty_multiplier;
+            double combinedRating = combined.DifficultyValue();
             double starRating = rescale(combinedRating * 1.4);
 
             HitWindows hitWindows = new TaikoHitWindows();

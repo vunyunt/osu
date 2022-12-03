@@ -1,3 +1,6 @@
+// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using System;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing;
@@ -65,9 +68,17 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return sigmoid(leniency, 0.6, 0.6, 0.5, 1);
         }
 
-        private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects)
+        private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects, double greatHitWindow)
         {
-            return ratioDifficulty(evenHitObjects.HitObjectIntervalRatio) + ratioDifficulty(evenHitObjects.DurationRatio);
+            double intervalDifficulty = ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
+
+            // We treat a group as one note if the whole group fits within one great hit window
+            if (evenHitObjects.Duration < greatHitWindow)
+            {
+                intervalDifficulty = 0;
+            }
+
+            return intervalDifficulty;
         }
 
         private static double evaluateDifficultyOf(EvenPatterns evenPatterns)
@@ -75,13 +86,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return ratioDifficulty(evenPatterns.IntervalRatio);
         }
 
-        public static double EvaluateDifficultyOf(DifficultyHitObject hitObject)
+        public static double EvaluateDifficultyOf(DifficultyHitObject hitObject, double greatHitWindow)
         {
             TaikoDifficultyHitObjectRhythm rhythm = ((TaikoDifficultyHitObject)hitObject).Rhythm;
             double difficulty = 0.0d;
 
             if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for EvenHitObjects
-                difficulty += 0.5 * evaluateDifficultyOf(rhythm.EvenHitObjects);
+                difficulty += evaluateDifficultyOf(rhythm.EvenHitObjects, greatHitWindow);
             if (rhythm.EvenPatterns?.FirstHitObject == hitObject) // Difficulty for EvenPatterns
                 difficulty += evaluateDifficultyOf(rhythm.EvenPatterns);
 
