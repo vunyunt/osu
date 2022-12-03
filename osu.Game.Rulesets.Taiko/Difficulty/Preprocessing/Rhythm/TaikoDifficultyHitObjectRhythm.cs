@@ -21,25 +21,17 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         /// </summary>
         public readonly double Ratio;
 
-        /// <summary>
-        /// The ratio of hit window to the interval of the note.
-        /// </summary>
-        public readonly double Leniency;
-
-        public TaikoDifficultyHitObjectRhythm(double hitWindow, TaikoDifficultyHitObject current)
+        public TaikoDifficultyHitObjectRhythm(TaikoDifficultyHitObject current)
         {
             var previous = current.Previous(0);
 
             if (previous == null)
             {
                 Ratio = 1;
-                Leniency = 1;
-
                 return;
             }
 
             Ratio = current.DeltaTime / previous.DeltaTime;
-            Leniency = hitWindow / current.DeltaTime;
         }
     }
 }

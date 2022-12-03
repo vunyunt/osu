@@ -57,13 +57,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// <param name="lastObject">The gameplay <see cref="HitObject"/> preceding <paramref name="hitObject"/>.</param>
         /// <param name="lastLastObject">The gameplay <see cref="HitObject"/> preceding <paramref name="lastObject"/>.</param>
         /// <param name="clockRate">The rate of the gameplay clock. Modified by speed-changing mods.</param>
-        /// <param name="hitWindow">The hit window for the beatmap.</param>
         /// <param name="objects">The list of all <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="centreHitObjects">The list of centre (don) <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="rimHitObjects">The list of rim (kat) <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="noteObjects">The list of <see cref="DifficultyHitObject"/>s that is a hit (i.e. not a drumroll or swell) in the current beatmap.</param>
         /// <param name="index">The position of this <see cref="DifficultyHitObject"/> in the <paramref name="objects"/> list.</param>
-        public TaikoDifficultyHitObject(HitObject hitObject, HitObject lastObject, HitObject lastLastObject, double clockRate, double hitWindow,
+        public TaikoDifficultyHitObject(HitObject hitObject, HitObject lastObject, HitObject lastLastObject, double clockRate,
                                         List<DifficultyHitObject> objects,
                                         List<TaikoDifficultyHitObject> centreHitObjects,
                                         List<TaikoDifficultyHitObject> rimHitObjects,
@@ -74,7 +73,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 
             // Create the Colour object, its properties should be filled in by TaikoDifficultyPreprocessor
             Colour = new TaikoDifficultyHitObjectColour();
-            Rhythm = new TaikoDifficultyHitObjectRhythm(hitWindow, this);
+            Rhythm = new TaikoDifficultyHitObjectRhythm(this);
 
             switch ((hitObject as Hit)?.Type)
             {

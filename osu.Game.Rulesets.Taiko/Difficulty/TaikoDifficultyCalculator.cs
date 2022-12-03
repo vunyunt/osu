@@ -67,13 +67,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 difficultyHitObjects.Add(
                     new TaikoDifficultyHitObject(
                         beatmap.HitObjects[i], beatmap.HitObjects[i - 1], beatmap.HitObjects[i - 2], clockRate,
-                        hitWindows.WindowFor(HitResult.Ok) / clockRate, difficultyHitObjects, centreObjects, rimObjects,
-                        noteObjects, difficultyHitObjects.Count)
+                        difficultyHitObjects, centreObjects, rimObjects, noteObjects, difficultyHitObjects.Count)
                 );
             }
 
             TaikoColourDifficultyPreprocessor.ProcessAndAssign(difficultyHitObjects);
-            TaikoRhythmDifficultyPreprocessor.ProcessAndAssign(noteObjects, hitWindows.WindowFor(HitResult.Great) / clockRate);
+            TaikoRhythmDifficultyPreprocessor.ProcessAndAssign(noteObjects);
 
             return difficultyHitObjects;
         }

@@ -71,12 +71,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
         private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects, double greatHitWindow)
         {
             double intervalDifficulty = ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
-
-            // We treat a group as one note if the whole group fits within one great hit window
-            if (evenHitObjects.Duration < greatHitWindow)
-            {
-                intervalDifficulty = 0;
-            }
+            intervalDifficulty *= evaluateLeniencyPenalty(
+                sigmoid(evenHitObjects.Duration / greatHitWindow, 0.5, 0.5, 0.5, 1));
 
             return intervalDifficulty;
         }
