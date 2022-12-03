@@ -13,7 +13,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
         //       we can remove this class.
         public static void ProcessAndAssign(List<TaikoDifficultyHitObject> hitObjects, double hitWindow)
         {
-            EvenPatterns.GroupPatterns(EvenHitObjects.GroupHitObjects(hitObjects, hitWindow), hitWindow);
+            EvenPatterns.GroupPatterns(EvenHitObjects.GroupHitObjects(hitObjects));
         }
     }
 }

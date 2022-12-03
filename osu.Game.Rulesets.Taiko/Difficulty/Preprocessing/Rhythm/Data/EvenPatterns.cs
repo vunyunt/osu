@@ -12,14 +12,14 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         public double ChildrenInterval => Children.Count > 1 ? Children[1].Interval : Children[0].Interval;
 
-        public double IntervalRatio => ChildrenInterval / Previous?.ChildrenInterval ?? 1;
+        public double IntervalRatio => ChildrenInterval / Previous?.ChildrenInterval ?? double.PositiveInfinity;
 
         public TaikoDifficultyHitObject FirstHitObject => Children[0].FirstHitObject;
 
         public IEnumerable<TaikoDifficultyHitObject> AllHitObjects => Children.SelectMany(child => child.Children);
 
-        private EvenPatterns(EvenPatterns? previous, List<EvenHitObjects> data, ref int i, double hitWindow)
-            : base(data, ref i, 3, hitWindow)
+        private EvenPatterns(EvenPatterns? previous, List<EvenHitObjects> data, ref int i)
+            : base(data, ref i, 3)
         {
             Previous = previous;
 
@@ -29,7 +29,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             }
         }
 
-        public static List<EvenPatterns> GroupPatterns(List<EvenHitObjects> data, double hitWindow)
+        public static List<EvenPatterns> GroupPatterns(List<EvenHitObjects> data)
         {
             List<EvenPatterns> evenPatterns = new List<EvenPatterns>();
 
@@ -37,7 +37,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             for (int i = 0; i < data.Count;)
             {
                 EvenPatterns? previous = evenPatterns.Count > 0 ? evenPatterns[^1] : null;
-                evenPatterns.Add(new EvenPatterns(previous, data, ref i, hitWindow));
+                evenPatterns.Add(new EvenPatterns(previous, data, ref i));
             }
 
             return evenPatterns;

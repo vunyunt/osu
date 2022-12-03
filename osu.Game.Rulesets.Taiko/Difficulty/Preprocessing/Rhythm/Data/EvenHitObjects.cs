@@ -25,11 +25,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// </summary>
         public double Duration => Children.Last().StartTime - Children.First().StartTime;
 
-        /// <summary>
-        /// The ratio of <see cref="Duration" /> between this and the previous <see cref="EvenHitObjects" />
-        /// </summary>
-        public double DurationRatio = 1;
-
         public EvenHitObjects? Previous;
 
         /// <summary>
@@ -49,8 +44,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
         /// </summary>
         public double Interval { get; private set; } = double.PositiveInfinity;
 
-        public EvenHitObjects(EvenHitObjects? previous, List<TaikoDifficultyHitObject> data, ref int i, double hitWindow)
-            : base(data, ref i, 2, hitWindow)
+        public EvenHitObjects(EvenHitObjects? previous, List<TaikoDifficultyHitObject> data, ref int i)
+            : base(data, ref i, 3)
         {
             Previous = previous;
 
@@ -62,7 +57,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             calculateIntervals();
         }
 
-        public static List<EvenHitObjects> GroupHitObjects(List<TaikoDifficultyHitObject> data, double hitWindow)
+        public static List<EvenHitObjects> GroupHitObjects(List<TaikoDifficultyHitObject> data)
         {
             List<EvenHitObjects> flatPatterns = new List<EvenHitObjects>();
 
@@ -70,7 +65,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             for (int i = 0; i < data.Count;)
             {
                 EvenHitObjects? previous = flatPatterns.Count > 0 ? flatPatterns[^1] : null;
-                flatPatterns.Add(new EvenHitObjects(previous, data, ref i, hitWindow));
+                flatPatterns.Add(new EvenHitObjects(previous, data, ref i));
             }
 
             return flatPatterns;
@@ -91,11 +86,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             }
 
             Interval = StartTime - Previous.StartTime;
-
-            if (Children.Count > 1 && Previous.Children.Count > 1)
-            {
-                DurationRatio = Duration / Previous.Duration;
-            }
         }
 
         /// <summary>
