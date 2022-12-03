@@ -73,7 +73,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
 
         private void calculateIntervals()
         {
-            HitObjectInterval = Children.Count < 2 ? null : Children[1].StartTime - Children[0].StartTime;
+            HitObjectInterval = Children.Count < 2 ? null : (Children[^1].StartTime - Children[0].StartTime) / (Children.Count - 1);
 
             if (Previous?.HitObjectInterval != null && HitObjectInterval != null)
             {
