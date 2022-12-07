@@ -12,10 +12,16 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
     public class RhythmEvaluator
     {
         // TODO: Share this sigmoid as it's used in colour evaluator. Should be done after tl tapping pr is merged.
+        private static double invertedSigmoid(double val, double center, double width, double middle, double height)
+        {
+            double inverted = Math.Tanh(Math.E * -(val - center) / width);
+            return inverted * (height / 2) + middle;
+        }
+
         private static double sigmoid(double val, double center, double width, double middle, double height)
         {
-            double sigmoid = Math.Tanh(Math.E * -(val - center) / width);
-            return sigmoid * (height / 2) + middle;
+            double inverted = invertedSigmoid(val, center, width, middle, height);
+            return height - inverted;
         }
 
         /// <summary>
@@ -63,16 +69,22 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return difficulty;
         }
 
-        private static double evaluateLeniencyPenalty(double leniency)
+        private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects, double hitWindow)
         {
-            return sigmoid(leniency, 0.6, 0.6, 0.5, 1);
-        }
+            // Treat the pattern as a single note rhythm wise if it's shorter than one hit window.
+            if (evenHitObjects.Duration < hitWindow)
+                return 0;
 
-        private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects, double greatHitWindow)
-        {
             double intervalDifficulty = ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
-            intervalDifficulty *= evaluateLeniencyPenalty(
-                sigmoid(evenHitObjects.Duration / greatHitWindow, 0.5, 0.5, 0.5, 1));
+
+            // Penalize patterns that can be played with the same interval as the previous pattern.
+            double? previousInterval = evenHitObjects.Previous?.HitObjectInterval;
+            if (previousInterval != null && evenHitObjects.Children.Count > 1)
+            {
+                double expectedDurationFromPrevious = (double)previousInterval * evenHitObjects.Children.Count;
+                double durationDifference = Math.Abs(evenHitObjects.Duration - expectedDurationFromPrevious);
+                intervalDifficulty *= 1 - sigmoid(durationDifference / hitWindow, 0.5, 1.5, 0.5, 1);
+            }
 
             return intervalDifficulty;
         }

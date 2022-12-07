@@ -12,9 +12,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
     public class Peaks : Skill
     {
-        private const double rhythm_skill_multiplier = 0.29 * final_multiplier;
-        private const double colour_skill_multiplier = 0.29 * final_multiplier;
-        private const double stamina_skill_multiplier = 0.4 * final_multiplier;
+        private const double rhythm_skill_multiplier = 0.31 * final_multiplier;
+        private const double colour_skill_multiplier = 0.35 * final_multiplier;
+        private const double stamina_skill_multiplier = 0.33 * final_multiplier;
 
         private const double final_multiplier = 0.1;
 
