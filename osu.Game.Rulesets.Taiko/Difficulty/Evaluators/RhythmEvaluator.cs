@@ -10,19 +10,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 {
     public class RhythmEvaluator
     {
-        // TODO: Share this sigmoid as it's used in colour evaluator. Should be done after tl tapping pr is merged.
-        private static double invertedSigmoid(double val, double center, double width, double middle, double height)
-        {
-            double inverted = Math.Tanh(Math.E * -(val - center) / width);
-            return inverted * (height / 2) + middle;
-        }
-
-        private static double sigmoid(double val, double center, double width, double middle, double height)
-        {
-            double inverted = invertedSigmoid(val, center, width, middle, height);
-            return height - inverted;
-        }
-
         /// <summary>
         /// Multiplier for a given denominator term.
         /// </summary>
@@ -82,7 +69,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             {
                 double expectedDurationFromPrevious = (double)previousInterval * evenHitObjects.Children.Count;
                 double durationDifference = Math.Abs(evenHitObjects.Duration - expectedDurationFromPrevious);
-                intervalDifficulty *= 1 - sigmoid(durationDifference / hitWindow, 0.5, 1.5, 0.5, 1);
+                intervalDifficulty *= MathEvaluator.InvertedSigmoid(durationDifference / hitWindow, 0.5, 1.5, 0.5, 1);
             }
 
             return intervalDifficulty;
