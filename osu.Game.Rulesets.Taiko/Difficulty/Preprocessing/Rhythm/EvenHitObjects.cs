@@ -3,24 +3,24 @@
 
 using System.Linq;
 using System.Collections.Generic;
+using osu.Game.Rulesets.Difficulty.Preprocessing;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 {
     /// <summary>
-    /// A flat pattern is defined as a sequence of hit objects that has effectively no variation in rhythm, i.e. all
-    /// hit object within will have rhythm ratios of almost 1, with the exception of the first two hit objects.
+    /// Represents a group of <see cref="TaikoDifficultyHitObject"/>s with no rhythm variation.
     /// </summary>
     public class EvenHitObjects : EvenRhythm<TaikoDifficultyHitObject>, IHasInterval
     {
         public TaikoDifficultyHitObject FirstHitObject => Children.First();
 
         /// <summary>
-        /// Start time of the first hit object.
+        /// <see cref="DifficultyHitObject.StartTime"/> of the first hit object.
         /// </summary>
         public double StartTime => Children.First().StartTime;
 
         /// <summary>
-        /// The interval between the first and last hit object
+        /// The interval between the first and final hit object within this group.
         /// </summary>
         public double Duration => Children.Last().StartTime - Children.First().StartTime;
 

@@ -44,6 +44,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 
             for (; i < data.Count - 1; i++)
             {
+                // An interval change occured, add the current data if the next interval is larger.
                 if (!isFlat(data[i], data[i + 1], marginOfError))
                 {
                     if (data[i + 1].Interval > data[i].Interval + marginOfError)
@@ -55,6 +56,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
                     return;
                 }
 
+                // No interval change occured
                 children.Add(data[i]);
             }
 

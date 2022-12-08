@@ -6,12 +6,23 @@ using System.Collections.Generic;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 {
+    /// <summary>
+    /// Represents <see cref="EvenHitObjects"/> grouped by their <see cref="EvenHitObjects.StartTime"/>'s interval.
+    /// </summary>
     public class EvenPatterns : EvenRhythm<EvenHitObjects>
     {
         public EvenPatterns? Previous { get; private set; }
 
+        /// <summary>
+        /// The <see cref="EvenHitObjects.Interval"/> between children <see cref="EvenHitObjects"/> within this group.
+        /// If there is only one child, this will have the value of the first child's <see cref="EvenHitObjects.Interval"/>.
+        /// </summary>
         public double ChildrenInterval => Children.Count > 1 ? Children[1].Interval : Children[0].Interval;
 
+        /// <summary>
+        /// The ratio of <see cref="ChildrenInterval"/> between this and the previous <see cref="EvenPatterns"/>. In the
+        /// case where there is no previous <see cref="EvenPatterns"/>, this will have a value of 1.
+        /// </summary>
         public double IntervalRatio => ChildrenInterval / Previous?.ChildrenInterval ?? 1.0d;
 
         public TaikoDifficultyHitObject FirstHitObject => Children[0].FirstHitObject;
