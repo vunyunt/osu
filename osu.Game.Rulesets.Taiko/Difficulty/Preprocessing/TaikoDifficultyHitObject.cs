@@ -8,7 +8,6 @@ using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Colour;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm;
-using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 {

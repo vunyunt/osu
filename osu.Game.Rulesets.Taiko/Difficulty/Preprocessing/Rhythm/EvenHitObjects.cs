@@ -1,11 +1,10 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
+namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 {
     /// <summary>
     /// A flat pattern is defined as a sequence of hit objects that has effectively no variation in rhythm, i.e. all
@@ -86,25 +85,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
             }
 
             Interval = StartTime - Previous.StartTime;
-        }
-
-        /// <summary>
-        /// Two <see cref="EvenHitObjects"/>s are considered repetitions if they have the same amount of hit objects and
-        /// have the same interval between the first two hit objects. Only the first two hit objects are taken into
-        /// account due to <see cref="EvenHitObjects"/>s are defined as having no variation in rhythm.
-        ///
-        /// If there is only one hit object in the <see cref="EvenHitObjects"/>s, they are considered repetitions if their
-        /// first (and only) hit objects have the same interval.
-        /// </summary>
-        public bool IsRepetitionOf(EvenHitObjects? other)
-        {
-            if (other == null || Children.Count != other.Children.Count)
-                return false;
-
-            if (Children.Count <= 1)
-                return Math.Abs(Children[0].DeltaTime - other.Children[0].DeltaTime) < 3;
-
-            return Math.Abs(Children[1].DeltaTime - other.Children[1].DeltaTime) < 3;
         }
     }
 }

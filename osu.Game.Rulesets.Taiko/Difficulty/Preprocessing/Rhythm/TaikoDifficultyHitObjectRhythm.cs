@@ -1,12 +1,10 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data;
-
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 {
     /// <summary>
-    /// Represents a rhythm change in a taiko map.
+    /// Stores rhythm data for a <see cref="TaikoDifficultyHitObject"/>.
     /// </summary>
     public class TaikoDifficultyHitObjectRhythm
     {

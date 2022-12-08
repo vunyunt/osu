@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data
+namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm
 {
     public class EvenPatterns : EvenRhythm<EvenHitObjects>
     {

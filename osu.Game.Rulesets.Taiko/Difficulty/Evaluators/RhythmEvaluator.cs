@@ -5,7 +5,6 @@ using System;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm;
-using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Rhythm.Data;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 {
