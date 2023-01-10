@@ -24,8 +24,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoDifficultyCalculator : DifficultyCalculator
     {
-        private const double difficulty_multiplier = 1.35;
-
         public override int Version => 20220902;
 
         public TaikoDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
@@ -40,7 +38,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             return new Skill[]
             {
-                new Peaks(mods, hitWindows.WindowFor(HitResult.Great))
+                new Peaks(mods, hitWindows.WindowFor(HitResult.Great) / clockRate)
             };
         }
 
@@ -89,7 +87,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             double staminaRating = combined.StaminaDifficultyValue;
 
             double combinedRating = combined.DifficultyValue();
-            double starRating = rescale(combinedRating * 1.4);
+            double starRating = rescale(combinedRating);
 
             HitWindows hitWindows = new TaikoHitWindows();
             hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);

@@ -29,22 +29,21 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 
         private static double ratioDifficulty(double ratio)
         {
+            int n = 8;
             // Sum of n = 8 terms of periodic penalty. A more common denominator will be penalized multiple time, hence
             // simpler rhythm change will be penalized more.
             // Note that to penalize 1/4 properly, a power-of-two n is required.
 
             // For offsetting the penalty so that a positive difficulty is given.
-            double multiplierSum = 0;
+            // double multiplierSum = 0;
             double difficulty = 0;
 
-            for (int i = 1; i < 8; ++i)
+            for (int i = 1; i <= n; ++i)
             {
-                double currentTermMultiplier = 2;
-                difficulty += termPenalty(ratio, i, 2, currentTermMultiplier);
-                multiplierSum += currentTermMultiplier;
+                difficulty += termPenalty(ratio, i, 2, 1);
             }
 
-            difficulty += multiplierSum;
+            difficulty += n;
 
             // Give bonus to near-1 ratios
             difficulty += targetedBonus(ratio, 1, 0.5, 1);
@@ -52,15 +51,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             // Penalize ratios that are VERY near 1
             difficulty -= targetedBonus(ratio, 1, 0.3, 1);
 
-            return difficulty;
+            return difficulty / Math.Sqrt(8);
         }
 
         private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects, double hitWindow)
         {
-            // Treat the pattern as a single note rhythm wise if it's shorter than one hit window.
-            if (evenHitObjects.Duration < hitWindow)
-                return 0;
-
             double intervalDifficulty = ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
 
             // Penalize patterns that can be played with the same interval as the previous pattern.
@@ -69,8 +64,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             {
                 double expectedDurationFromPrevious = (double)previousInterval * evenHitObjects.Children.Count;
                 double durationDifference = Math.Abs(evenHitObjects.Duration - expectedDurationFromPrevious);
-                intervalDifficulty *= MathEvaluator.InvertedSigmoid(durationDifference / hitWindow, 0.5, 1.5, 0.5, 1);
+                intervalDifficulty *= MathEvaluator.Sigmoid(durationDifference / hitWindow, 1.5, 0.5, 0.5, 1);
             }
+
+            // Penalize patterns that can be hit within a single hit window.
+            intervalDifficulty *= MathEvaluator.Sigmoid(evenHitObjects.Duration / hitWindow, 1, 0.5, 0.5, 1);
 
             return intervalDifficulty;
         }
@@ -80,13 +78,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return ratioDifficulty(evenPatterns.IntervalRatio);
         }
 
-        public static double EvaluateDifficultyOf(DifficultyHitObject hitObject, double greatHitWindow)
+        public static double EvaluateDifficultyOf(DifficultyHitObject hitObject, double hitWindow)
         {
             TaikoDifficultyHitObjectRhythm rhythm = ((TaikoDifficultyHitObject)hitObject).Rhythm;
             double difficulty = 0.0d;
 
             if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for EvenHitObjects
-                difficulty += evaluateDifficultyOf(rhythm.EvenHitObjects, greatHitWindow);
+                difficulty += 0.5 * evaluateDifficultyOf(rhythm.EvenHitObjects, hitWindow);
             if (rhythm.EvenPatterns?.FirstHitObject == hitObject) // Difficulty for EvenPatterns
                 difficulty += evaluateDifficultyOf(rhythm.EvenPatterns);
 
