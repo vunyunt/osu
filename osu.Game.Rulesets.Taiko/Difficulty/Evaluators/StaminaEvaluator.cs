@@ -69,6 +69,18 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 
             double objectStrain = 0.25d; // Add a base strain to all objects
             objectStrain += speedBonus(taikoCurrent.StartTime - keyPrevious.StartTime);
+
+            DifficultyHitObject? nextColourChange = taikoCurrent.Colour.NextColourChange;
+            if (nextColourChange != null)
+            {
+                double timeToNextColourChange = nextColourChange.StartTime - taikoCurrent.StartTime;
+                objectStrain *= MathEvaluator.InvertedSigmoid(timeToNextColourChange, 300, 300, 0.8, 0.2);
+            }
+            else
+            {
+                objectStrain *= 0.5;
+            }
+
             return objectStrain;
         }
     }
