@@ -38,7 +38,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
         public static double Sigmoid(double val, double center, double width, double middle, double height)
         {
             double inverted = InvertedSigmoid(val, center, width, middle, height);
-            return 1 - inverted + 2 * height;
+            return 2 * middle - inverted;
         }
     }
 }
