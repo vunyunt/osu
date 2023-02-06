@@ -15,7 +15,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
     /// </summary>
     public class Stamina : StrainDecaySkill
     {
-        protected override double SkillMultiplier => 1.8;
+        protected override double SkillMultiplier => 1.85;
         protected override double StrainDecayBase => 0.4;
 
         /// <summary>
