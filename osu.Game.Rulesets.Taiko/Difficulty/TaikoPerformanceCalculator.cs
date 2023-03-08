@@ -54,7 +54,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             double patternDifficulty = MathEvaluator.Norm(2, taikoAttributes.RhythmDifficulty, taikoAttributes.ColourDifficulty);
             // 0.8165
             double readingMultiplier = MathEvaluator.Sigmoid(patternDifficulty / taikoAttributes.PeakDifficulty / pattern_ratio,
-                1.0, 0.7, 0.5, 1.0);
+                0.6, 0.4, 0.5, 1.0);
 
             if (score.Mods.Any(m => m is ModHidden))
                 multiplier *= 1 + 0.075 * readingMultiplier;
