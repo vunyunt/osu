@@ -17,6 +17,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoPerformanceCalculator : PerformanceCalculator
     {
+        private readonly double pattern_ratio = Math.Sqrt(2.0 / 3.0);
+
         private int countGreat;
         private int countOk;
         private int countMeh;
@@ -46,15 +48,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             double multiplier = 1.13;
 
-            // Ratio of pattern to peak difficulty where all skills are equal.
-            double pattern_ratio = Math.Sqrt(2 / 3);
             // This is a quick way to estimate pattern difficulty, and from that the colour multiplier, which is used
             // to scale reading-related mods. This should be switched to the actual pattern difficulty when the pattern
             // skill is implemented.
             double patternDifficulty = MathEvaluator.Norm(2, taikoAttributes.RhythmDifficulty, taikoAttributes.ColourDifficulty);
             // 0.8165
             double readingMultiplier = MathEvaluator.Sigmoid(patternDifficulty / taikoAttributes.PeakDifficulty / pattern_ratio,
-                0.5, 0.4, 0.5, 1.0);
+                0.55, 0.4, 0.5, 1.0);
 
             if (score.Mods.Any(m => m is ModHidden))
                 multiplier *= 1 + 0.075 * readingMultiplier;
@@ -83,8 +83,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
         {
             double difficultyValue = Math.Pow(5 * Math.Max(1.0, attributes.StarRating / 0.115) - 4.0, 2.25) / 1150.0;
 
-            double lengthBonus = 0.1 * Math.Min(1.0, totalHits / 1500.0);
-            difficultyValue *= 1 + lengthBonus;
+            double lengthBonus = 1 + 0.1 * Math.Min(1.0, totalHits / 1500.0);
+            difficultyValue *= lengthBonus;
 
             difficultyValue *= Math.Pow(0.986, effectiveMissCount);
 
@@ -98,7 +98,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 difficultyValue *= 1.050;
 
             if (score.Mods.Any(m => m is ModFlashlight<TaikoHitObject>))
-                difficultyValue *= 1 + 0.050 * lengthBonus * readingMultiplier;
+                difficultyValue *= (1 + 0.050 * readingMultiplier) * lengthBonus;
 
             return difficultyValue * Math.Pow(accuracy, 2.0);
         }
