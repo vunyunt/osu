@@ -82,12 +82,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             var combined = (Peaks)skills[0];
 
-            double colourRating = combined.ColourDifficultyValue;
-            double rhythmRating = combined.RhythmDifficultyValue;
-            double staminaRating = combined.StaminaDifficultyValue;
-
             double combinedRating = combined.DifficultyValue();
             double starRating = rescale(combinedRating);
+
+            // These have to be read after combined.DifficultyValue() is set
+            double colourRating = combined.ColourStat;
+            double rhythmRating = combined.RhythmStat;
+            double staminaRating = combined.StaminaStat;
 
             HitWindows hitWindows = new TaikoHitWindows();
             hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
