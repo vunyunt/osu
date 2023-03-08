@@ -7,6 +7,7 @@ using System.Linq;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Taiko.Difficulty.Evaluators;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
@@ -24,19 +25,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
         public readonly double Stamina;
         public readonly double Combined;
 
-        /// <summary>
-        /// Returns the <i>p</i>-norm of an <i>n</i>-dimensional vector.
-        /// </summary>
-        /// <param name="p">The value of <i>p</i> to calculate the norm for.</param>
-        /// <param name="values">The coefficients of the vector.</param>
-        private double norm(double p, params double[] values) => Math.Pow(values.Sum(x => Math.Pow(x, p)), 1 / p);
-
         public TaikoStrain(double colour, double rhythm, double stamina)
         {
             Colour = colour * colour_skill_multiplier;
             Rhythm = rhythm * rhythm_skill_multiplier;
             Stamina = stamina * stamina_skill_multiplier;
-            Combined = norm(2, Colour, Rhythm, Stamina);
+            Combined = MathEvaluator.Norm(2, Colour, Rhythm, Stamina);
         }
 
         int IComparable<TaikoStrain>.CompareTo(TaikoStrain? other)
