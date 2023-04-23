@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 {
@@ -39,5 +40,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             double inverted = InvertedSigmoid(val, center, width, middle, height);
             return 2 * middle - inverted;
         }
+
+        /// <summary>
+        /// Returns the <i>p</i>-norm of an <i>n</i>-dimensional vector.
+        /// </summary>
+        /// <param name="p">The value of <i>p</i> to calculate the norm for.</param>
+        /// <param name="values">The coefficients of the vector.</param>
+        public static double Norm(double p, params double[] values) => Math.Pow(values.Sum(x => Math.Pow(x, p)), 1 / p);
     }
 }

@@ -7,24 +7,51 @@ using System.Linq;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Taiko.Difficulty.Evaluators;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
-    public class Peaks : Skill
+    // TODO: Not sure where this should go, but it's only used in Peak so I'm
+    //       placing it here for now
+    public class TaikoStrain : IComparable<TaikoStrain>
     {
+        private const double final_multiplier = 0.15;
         private const double rhythm_skill_multiplier = 0.33 * final_multiplier;
         private const double colour_skill_multiplier = 0.33 * final_multiplier;
         private const double stamina_skill_multiplier = 0.42 * final_multiplier;
 
-        private const double final_multiplier = 0.15;
+        public readonly double Colour;
+        public readonly double Rhythm;
+        public readonly double Stamina;
+        public readonly double Combined;
 
+        public TaikoStrain(double colour, double rhythm, double stamina)
+        {
+            Colour = colour * colour_skill_multiplier;
+            Rhythm = rhythm * rhythm_skill_multiplier;
+            Stamina = stamina * stamina_skill_multiplier;
+            Combined = MathEvaluator.Norm(2, Colour, Rhythm, Stamina);
+        }
+
+        int IComparable<TaikoStrain>.CompareTo(TaikoStrain? other)
+        {
+            if (other == null)
+                return 1;
+
+            return Combined.CompareTo(other.Combined);
+        }
+    }
+
+    public class Peaks : Skill
+    {
         private readonly Rhythm rhythm;
         private readonly Colour colour;
         private readonly Stamina stamina;
 
-        public double ColourDifficultyValue => colour.DifficultyValue() * colour_skill_multiplier;
-        public double RhythmDifficultyValue => rhythm.DifficultyValue() * rhythm_skill_multiplier;
-        public double StaminaDifficultyValue => stamina.DifficultyValue() * stamina_skill_multiplier;
+        // These stats are only defined after DifficultyValue() is called
+        public double RhythmStat { get; private set; }
+        public double ColourStat { get; private set; }
+        public double StaminaStat { get; private set; }
 
         public Peaks(Mod[] mods, double greatHitWindow)
             : base(mods)
@@ -33,13 +60,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
             colour = new Colour(mods);
             stamina = new Stamina(mods);
         }
-
-        /// <summary>
-        /// Returns the <i>p</i>-norm of an <i>n</i>-dimensional vector.
-        /// </summary>
-        /// <param name="p">The value of <i>p</i> to calculate the norm for.</param>
-        /// <param name="values">The coefficients of the vector.</param>
-        private double norm(double p, params double[] values) => Math.Pow(values.Sum(x => Math.Pow(x, p)), 1 / p);
 
         public override void Process(DifficultyHitObject current)
         {
@@ -57,7 +77,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
         /// </remarks>
         public override double DifficultyValue()
         {
-            List<double> peaks = new List<double>();
+            List<TaikoStrain> peaks = new();
 
             var colourPeaks = colour.GetCurrentStrainPeaks().ToList();
             var rhythmPeaks = rhythm.GetCurrentStrainPeaks().ToList();
@@ -65,28 +85,34 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
             for (int i = 0; i < colourPeaks.Count; i++)
             {
-                double colourPeak = colourPeaks[i] * colour_skill_multiplier;
-                double rhythmPeak = rhythmPeaks[i] * rhythm_skill_multiplier;
-                double staminaPeak = staminaPeaks[i] * stamina_skill_multiplier;
-
-                double peak = norm(2, colourPeak, rhythmPeak, staminaPeak);
+                TaikoStrain peak = new TaikoStrain(colourPeaks[i], rhythmPeaks[i], staminaPeaks[i]);
 
                 // Sections with 0 strain are excluded to avoid worst-case time complexity of the following sort (e.g. /b/2351871).
                 // These sections will not contribute to the difficulty.
-                if (peak > 0)
+                if (peak.Combined > 0)
                     peaks.Add(peak);
             }
 
-            double difficulty = 0;
+            double combinedDifficulty = 0;
+            double colourDifficulty = 0;
+            double rhythmDifficulty = 0;
+            double staminaDifficulty = 0;
             double weight = 1;
 
-            foreach (double strain in peaks.OrderByDescending(d => d))
+            foreach (TaikoStrain strain in peaks.OrderByDescending(d => d))
             {
-                difficulty += strain * weight;
+                combinedDifficulty += strain.Combined * weight;
+                colourDifficulty += strain.Colour * weight;
+                rhythmDifficulty += strain.Rhythm * weight;
+                staminaDifficulty += strain.Stamina * weight;
                 weight *= 0.9;
             }
 
-            return difficulty;
+            RhythmStat = rhythmDifficulty;
+            ColourStat = colourDifficulty;
+            StaminaStat = staminaDifficulty;
+
+            return combinedDifficulty;
         }
     }
 }

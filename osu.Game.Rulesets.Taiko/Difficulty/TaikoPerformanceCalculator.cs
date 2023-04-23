@@ -11,11 +11,14 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Scoring;
+using osu.Game.Rulesets.Taiko.Difficulty.Evaluators;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoPerformanceCalculator : PerformanceCalculator
     {
+        private readonly double pattern_ratio = Math.Sqrt(2.0 / 3.0);
+
         private int countGreat;
         private int countOk;
         private int countMeh;
@@ -43,19 +46,24 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             if (totalSuccessfulHits > 0)
                 effectiveMissCount = Math.Max(1.0, 1000.0 / totalSuccessfulHits) * countMiss;
 
-            // TODO: The detection of rulesets is temporary until the leftover old skills have been reworked.
-            bool isConvert = score.BeatmapInfo.Ruleset.OnlineID != 1;
-
             double multiplier = 1.13;
 
+            // This is a quick way to estimate pattern difficulty, and from that the colour multiplier, which is used
+            // to scale reading-related mods. This should be switched to the actual pattern difficulty when the pattern
+            // skill is implemented.
+            double patternDifficulty = MathEvaluator.Norm(2, taikoAttributes.RhythmDifficulty, taikoAttributes.ColourDifficulty);
+            // 0.8165
+            double readingMultiplier = MathEvaluator.Sigmoid(patternDifficulty / taikoAttributes.PeakDifficulty / pattern_ratio,
+                0.55, 0.4, 0.5, 1.0);
+
             if (score.Mods.Any(m => m is ModHidden))
-                multiplier *= 1.075;
+                multiplier *= 1 + 0.075 * readingMultiplier;
 
             if (score.Mods.Any(m => m is ModEasy))
                 multiplier *= 0.975;
 
-            double difficultyValue = computeDifficultyValue(score, taikoAttributes, isConvert);
-            double accuracyValue = computeAccuracyValue(score, taikoAttributes, isConvert);
+            double difficultyValue = computeDifficultyValue(score, taikoAttributes, readingMultiplier);
+            double accuracyValue = computeAccuracyValue(score, taikoAttributes, readingMultiplier);
             double totalValue =
                 Math.Pow(
                     Math.Pow(difficultyValue, 1.1) +
@@ -71,7 +79,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             };
         }
 
-        private double computeDifficultyValue(ScoreInfo score, TaikoDifficultyAttributes attributes, bool isConvert)
+        private double computeDifficultyValue(ScoreInfo score, TaikoDifficultyAttributes attributes, double readingMultiplier)
         {
             double difficultyValue = Math.Pow(5 * Math.Max(1.0, attributes.StarRating / 0.115) - 4.0, 2.25) / 1150.0;
 
@@ -83,19 +91,19 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             if (score.Mods.Any(m => m is ModEasy))
                 difficultyValue *= 0.985;
 
-            if (score.Mods.Any(m => m is ModHidden) && !isConvert)
-                difficultyValue *= 1.025;
+            if (score.Mods.Any(m => m is ModHidden))
+                difficultyValue *= 1 + 0.025 * readingMultiplier;
 
             if (score.Mods.Any(m => m is ModHardRock))
                 difficultyValue *= 1.050;
 
             if (score.Mods.Any(m => m is ModFlashlight<TaikoHitObject>))
-                difficultyValue *= 1.050 * lengthBonus;
+                difficultyValue *= (1 + 0.050 * readingMultiplier) * lengthBonus;
 
             return difficultyValue * Math.Pow(accuracy, 2.0);
         }
 
-        private double computeAccuracyValue(ScoreInfo score, TaikoDifficultyAttributes attributes, bool isConvert)
+        private double computeAccuracyValue(ScoreInfo score, TaikoDifficultyAttributes attributes, double readingMultiplier)
         {
             if (attributes.GreatHitWindow <= 0)
                 return 0;
@@ -106,8 +114,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             accuracyValue *= lengthBonus;
 
             // Slight HDFL Bonus for accuracy. A clamp is used to prevent against negative values.
-            if (score.Mods.Any(m => m is ModFlashlight<TaikoHitObject>) && score.Mods.Any(m => m is ModHidden) && !isConvert)
-                accuracyValue *= Math.Max(1.0, 1.1 * lengthBonus);
+            if (score.Mods.Any(m => m is ModFlashlight<TaikoHitObject>) && score.Mods.Any(m => m is ModHidden))
+                accuracyValue *= 1 + Math.Max(0.0, 0.1 * lengthBonus) * readingMultiplier;
 
             return accuracyValue;
         }
