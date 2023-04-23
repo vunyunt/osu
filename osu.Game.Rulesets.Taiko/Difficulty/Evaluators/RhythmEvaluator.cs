@@ -23,27 +23,22 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
         /// </summary>
         private static double targetedBonus(double ratio, double targetRatio, double width, double multiplier)
         {
-            // Gaussian function
             return multiplier * Math.Exp(Math.E * -(Math.Pow(ratio - targetRatio, 2) / Math.Pow(width, 2)));
         }
 
-        private static double ratioDifficulty(double ratio)
+        private static double ratioDifficulty(double ratio, int terms = 8)
         {
-            int n = 8;
             // Sum of n = 8 terms of periodic penalty. A more common denominator will be penalized multiple time, hence
             // simpler rhythm change will be penalized more.
             // Note that to penalize 1/4 properly, a power-of-two n is required.
-
-            // For offsetting the penalty so that a positive difficulty is given.
-            // double multiplierSum = 0;
             double difficulty = 0;
 
-            for (int i = 1; i <= n; ++i)
+            for (int i = 1; i <= terms; ++i)
             {
                 difficulty += termPenalty(ratio, i, 2, 1);
             }
 
-            difficulty += n;
+            difficulty += terms;
 
             // Give bonus to near-1 ratios
             difficulty += targetedBonus(ratio, 1, 0.5, 1);
@@ -60,6 +55,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 
             // Penalize patterns that can be played with the same interval as the previous pattern.
             double? previousInterval = evenHitObjects.Previous?.HitObjectInterval;
+
             if (previousInterval != null && evenHitObjects.Children.Count > 1)
             {
                 double expectedDurationFromPrevious = (double)previousInterval * evenHitObjects.Children.Count;

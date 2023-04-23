@@ -10,7 +10,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
     /// </summary>
     public class MathEvaluator
     {
-
         /// <summary>
         /// An interted sigmoid function. It gives a value between (middle - height/2) and (middle + height/2). Output
         /// will have a negative correlaation with the input value.
