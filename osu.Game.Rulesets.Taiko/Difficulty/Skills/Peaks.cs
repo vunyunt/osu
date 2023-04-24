@@ -77,7 +77,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
         /// </remarks>
         public override double DifficultyValue()
         {
-            List<TaikoStrain> peaks = new();
+            List<TaikoStrain> peaks = new List<TaikoStrain>();
 
             var colourPeaks = colour.GetCurrentStrainPeaks().ToList();
             var rhythmPeaks = rhythm.GetCurrentStrainPeaks().ToList();

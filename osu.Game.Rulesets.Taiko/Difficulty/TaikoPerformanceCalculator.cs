@@ -17,7 +17,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoPerformanceCalculator : PerformanceCalculator
     {
-        private readonly double pattern_ratio = Math.Sqrt(2.0 / 3.0);
+        // The estimate ratio of pattern difficulty to peak difficulty, assuming all skills having an even contribution.
+        // This is estimated by taking sqrt(2) / sqrt(3)
+        private const double pattern_ratio = 0.8165;
 
         private int countGreat;
         private int countOk;
@@ -48,11 +50,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             double multiplier = 1.13;
 
-            // This is a quick way to estimate pattern difficulty, and from that the colour multiplier, which is used
+            // This is a quick way to estimate pattern difficulty, and from that the reading multiplier, which is used
             // to scale reading-related mods. This should be switched to the actual pattern difficulty when the pattern
             // skill is implemented.
             double patternDifficulty = MathEvaluator.Norm(2, taikoAttributes.RhythmDifficulty, taikoAttributes.ColourDifficulty);
-            // 0.8165
             double readingMultiplier = MathEvaluator.Sigmoid(patternDifficulty / taikoAttributes.PeakDifficulty / pattern_ratio,
                 0.55, 0.4, 0.5, 1.0);
 
