@@ -18,8 +18,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
     public class TaikoPerformanceCalculator : PerformanceCalculator
     {
         // The estimate ratio of pattern difficulty to peak difficulty, assuming all skills having an even contribution.
-        // This is estimated by taking sqrt(2) / sqrt(3)
-        private const double pattern_ratio = 0.8165;
+        // This is estimated by taking sqrt(0.33^2 + 0.33^2) / sqrt(0.33^2 + 0.33^2 + 0.42^2)
+        private const double pattern_ratio = 0.7433;
 
         private int countGreat;
         private int countOk;
