@@ -51,7 +51,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             // This is a quick way to estimate pattern difficulty, and from that the reading multiplier, which is used
             // to scale reading-related mods. This should be switched to the actual pattern difficulty when the pattern
             // skill is implemented.
-            double patternDifficulty = MathEvaluator.Norm(2, taikoAttributes.RhythmDifficulty, taikoAttributes.ColourDifficulty);
+            double patternDifficulty = taikoAttributes.PatternDifficulty;
             double readingMultiplier = MathEvaluator.Sigmoid(patternDifficulty / taikoAttributes.PeakDifficulty / pattern_ratio,
                 0.55, 0.4, 0.5, 1.0);
 

@@ -17,16 +17,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
         public double StaminaDifficulty { get; set; }
 
         /// <summary>
-        /// The difficulty corresponding to the rhythm skill.
-        /// </summary>
-        [JsonProperty("rhythm_difficulty")]
-        public double RhythmDifficulty { get; set; }
-
-        /// <summary>
         /// The difficulty corresponding to the colour skill.
         /// </summary>
-        [JsonProperty("colour_difficulty")]
-        public double ColourDifficulty { get; set; }
+        [JsonProperty("pattern_difficulty")]
+        public double PatternDifficulty { get; set; }
 
         /// <summary>
         /// The difficulty corresponding to the hardest parts of the map.
