@@ -38,13 +38,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
                 rhythmAggregator.Group<SecondPassRhythmPattern, ThirdPassRhythmPattern>(secondPassRhythmPatterns);
             thirdPassRhythmPatterns.ForEach(item => item.FirstHitObject.Pattern.ThirdPassRhythmPattern = item);
 
-            // Within each flatRhythmNote, group notes by colour.
+            // Within each flatRhythmPattern, group notes by colour.
             List<MonoPattern> flatMonoPatterns = new List<MonoPattern>();
             flatRhythmPatterns.ForEach(item =>
             {
                 List<MonoPattern> grouped = colourAggregator.Group(item.Children);
                 // Link cross-rhythm patterns together
-                // This is to avoid a new flat rhythm pattern doesn't always create a new colourPattern
+                // This is so that a new flat rhythm pattern doesn't always create a new colourPattern
                 if (flatMonoPatterns.Count > 0)
                 {
                     grouped.First().Previous = flatMonoPatterns.Last();
