@@ -36,4 +36,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
         /// </summary>
         public double Duration => Children[^1].StartTime - StartTime;
     }
+
+    /// <summary>
+    /// Basic <see cref="DifficultyPattern{ChildrenType}"/> with hit objects as its children
+    /// </summary>
+    public class DifficultyPattern : DifficultyPattern<TaikoDifficultyHitObject>
+    {
+        public override TaikoDifficultyHitObject FirstHitObject => Children[0];
+    }
 }

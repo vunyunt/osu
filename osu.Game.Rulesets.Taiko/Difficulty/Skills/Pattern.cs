@@ -18,7 +18,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
             evaluator = new(hitWindow);
         }
 
-        protected override double SkillMultiplier => 0.35;
+        protected override double SkillMultiplier => 0.5;
 
         protected override double StrainDecayBase => 0.4;
 

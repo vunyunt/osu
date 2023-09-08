@@ -4,12 +4,10 @@
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
 {
     /// <summary>
-    /// A group of single-coloured notes.
+    /// A pattern that can be repeated
     /// </summary>
-    public class MonoPattern : DifficultyPattern<TaikoDifficultyHitObject>
+    public interface IRepeatable<OtherType>
     {
-        public MonoPattern() { }
-
-        public override TaikoDifficultyHitObject FirstHitObject => Children[0];
+        public bool IsRepetitionOf(OtherType other);
     }
 }

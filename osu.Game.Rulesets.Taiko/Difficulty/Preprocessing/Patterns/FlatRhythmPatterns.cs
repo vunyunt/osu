@@ -28,13 +28,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
     public class ThirdPassRhythmPattern : FlatRhythmPattern<SecondPassRhythmPattern, FlatRhythmHitObjects> { }
 
     /// <summary>
-    /// The result of aggregating <see cref="MonoPattern" /> by <see cref="RhythmAggregator"/>.
-    /// This will result in flat-rhythm colour changes (eg. kkddkkdd or kdkdkdkd) being grouped together.
+    /// The result of aggregating mono <see cref="DifficultyPattern" />s by <see cref="RhythmAggregator"/>.
+    /// This will result in flat-rhythm colour changes (eg. kkddkkdd or kk[ddd]kk[ddd]) being grouped together.
     /// </summary>
-    public class ColourPattern : FlatRhythmPattern<MonoPattern, TaikoDifficultyHitObject> { }
+    public class ColourRhythm : FlatRhythmPattern<MonoPattern, TaikoDifficultyHitObject> { }
 
     /// <summary>
-    /// The result of aggregating <see cref="ColourPattern" /> by another run of <see cref="RhythmAggregator"/>.
+    /// The result of aggregating <see cref="ColourRhythm" /> by another run of <see cref="RhythmAggregator"/>.
     /// </summary>
-    public class HigherOrderColourPattern : FlatRhythmPattern<ColourPattern, MonoPattern> { }
+    public class SecondPassColourRhythm : FlatRhythmPattern<ColourRhythm, MonoPattern> { }
 }

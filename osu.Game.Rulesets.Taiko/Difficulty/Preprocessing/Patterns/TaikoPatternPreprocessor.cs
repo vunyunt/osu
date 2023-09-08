@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns.Aggregators;
+using osu.Game.Rulesets.Scoring;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
 {
@@ -11,14 +12,19 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
     {
         private ColourAggregator colourAggregator;
         private RhythmAggregator rhythmAggregator;
+        private RepetitionAggregator repetitionAggregator;
 
-        public TaikoPatternPreprocessor()
+        public TaikoPatternPreprocessor(HitWindows hitWindows)
         {
             colourAggregator = new ColourAggregator();
 
             // Using 3ms as the hitwindow, as note timings are stored in ms.
             // Might want to consider using some sort of hit window instead
             rhythmAggregator = new RhythmAggregator(3);
+
+            // streamAggregator = new StreamAggregator(hitWindows.WindowFor(HitResult.Meh));
+
+            repetitionAggregator = new RepetitionAggregator();
         }
 
         public void ProcessAndAssign(List<TaikoDifficultyHitObject> hitObjects)
@@ -54,12 +60,38 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
             flatMonoPatterns.ForEach(item => item.FirstHitObject.Pattern.MonoPattern = item);
 
             // First pass colour pattern
-            List<ColourPattern> colourPatterns = rhythmAggregator.Group<MonoPattern, ColourPattern>(flatMonoPatterns);
+            List<ColourRhythm> colourPatterns = rhythmAggregator.Group<MonoPattern, ColourRhythm>(flatMonoPatterns);
             colourPatterns.ForEach(item => item.FirstHitObject.Pattern.FirstPassColourPattern = item);
 
             // Second pass colour pattern
-            List<HigherOrderColourPattern> secondPassColourPatterns = rhythmAggregator.Group<ColourPattern, HigherOrderColourPattern>(colourPatterns);
+            List<SecondPassColourRhythm> secondPassColourPatterns = rhythmAggregator.Group<ColourRhythm, SecondPassColourRhythm>(colourPatterns);
             secondPassColourPatterns.ForEach(item => item.FirstHitObject.Pattern.SecondPassColourPattern = item);
+
+            // List<DifficultyPattern> streams = streamAggregator.Aggregate(hitObjects);
+
+            // List<ColourSequence> colourSequences = new();
+            // foreach (var stream in streams)
+            // {
+            //     if (stream == null || stream.Children.Count() <= 5)
+            //     {
+            //         continue;
+            //     }
+
+            //     List<MonoPattern> monosInStream = colourAggregator.Group(stream.Children);
+            //     colourSequences.AddRange(
+            //         repetitionAggregator.Group<MonoPattern, ColourSequence>(monosInStream));
+            // }
+            // foreach (var item in colourSequences)
+            // {
+            //     item.FirstHitObject.Pattern.ColourSequence = item;
+            // }
+
+            List<MonoPattern> untimedMonos = colourAggregator.Group(hitObjects);
+            List<ColourSequence> colourSequences = repetitionAggregator.Group<MonoPattern, ColourSequence>(untimedMonos);
+            foreach (var item in colourSequences)
+            {
+                item.FirstHitObject.Pattern.ColourSequence = item;
+            }
         }
     }
 }

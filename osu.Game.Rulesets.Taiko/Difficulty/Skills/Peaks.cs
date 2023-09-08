@@ -15,9 +15,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
     //       placing it here for now
     public class TaikoStrain : IComparable<TaikoStrain>
     {
-        private const double final_multiplier = 0.15;
-        private const double pattern_skill_multiplier = 0.6 * final_multiplier;
-        private const double stamina_skill_multiplier = 0.5 * final_multiplier;
+        private const double final_multiplier = 0.177;
+        private const double pattern_skill_multiplier = 0.55 * final_multiplier;
+        private const double stamina_skill_multiplier = 0.45 * final_multiplier;
 
         public readonly double Pattern;
         public readonly double Stamina;
@@ -27,7 +27,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
         {
             Pattern = colour * pattern_skill_multiplier;
             Stamina = stamina * stamina_skill_multiplier;
-            Combined = MathEvaluator.Norm(2, Pattern, Stamina);
+            Combined = MathEvaluator.Norm(3, Pattern, Stamina);
         }
 
         int IComparable<TaikoStrain>.CompareTo(TaikoStrain? other)

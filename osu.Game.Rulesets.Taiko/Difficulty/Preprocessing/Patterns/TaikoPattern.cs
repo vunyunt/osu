@@ -13,8 +13,10 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Patterns
 
         public MonoPattern? MonoPattern;
 
-        public ColourPattern? FirstPassColourPattern;
+        public ColourRhythm? FirstPassColourPattern;
 
-        public HigherOrderColourPattern? SecondPassColourPattern;
+        public SecondPassColourRhythm? SecondPassColourPattern;
+
+        public ColourSequence? ColourSequence;
     }
 }

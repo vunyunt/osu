@@ -53,6 +53,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             // Penalize ratios that are VERY near 1
             difficulty -= targetedBonus(ratio, 1, 0.3, 1);
 
+            // Penalize 1/2s specifically
+            difficulty -= targetedBonus(ratio, 0.5, 0.1, 0.2);
+
             return difficulty / Math.Sqrt(8);
         }
 
@@ -126,6 +129,37 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             return ratioDifficulty(intervalStrain + childrenIntervalStrain);
         }
 
+        /// <summary>
+        /// Calcaultes the number of previous mono patterns needed to have a even
+        /// total number of notes.
+        /// </summary>
+        ///
+        /// Note: A problem with this approach is that a single odd-numbered
+        ///       mono with a bunch of even numbered monos will result in a very
+        ///       long chain. Hence a limit of 3 patterns is applied
+        private int patternsToEven(MonoPattern monoPattern)
+        {
+            int noteCount = 0;
+            int patternCount = 0;
+            MonoPattern? current = monoPattern;
+
+            while (current != null && (noteCount == 0 || noteCount % 2 == 0))
+            {
+                patternCount += 1;
+
+                // Restrict to 3 patterns max
+                if (patternCount >= 3)
+                {
+                    return 3;
+                }
+
+                noteCount += current.Children.Count;
+                current = current.Previous as MonoPattern;
+            }
+
+            return Math.Max(patternCount, 1);
+        }
+
         public double Evaluate(TaikoDifficultyHitObject hitObject)
         {
             double total = 0;
@@ -133,7 +167,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             var pattern = hitObject.Pattern;
             if (pattern.FlatRhythmPattern != null)
             {
-                total += Evaluate(pattern.FlatRhythmPattern);
+                total += 0.25 * Evaluate(pattern.FlatRhythmPattern);
             }
 
             if (pattern.SecondPassRhythmPattern != null)
@@ -146,9 +180,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
                 total += Evaluate(pattern.ThirdPassRhythmPattern);
             }
 
-            if (pattern.MonoPattern != null)
+            if (pattern.MonoPattern != null && pattern.FlatRhythmPattern == null)
             {
-                total += 0.1;
+                total += 0.2d * patternsToEven(pattern.MonoPattern);
             }
 
             if (pattern.SecondPassColourPattern != null)
@@ -163,43 +197,5 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 
             return total;
         }
-
-        // private static double evaluateDifficultyOf(EvenHitObjects evenHitObjects, double hitWindow)
-        // {
-        //     double intervalDifficulty = ratioDifficulty(evenHitObjects.HitObjectIntervalRatio);
-
-        //     // Penalize patterns that can be played with the same interval as the previous pattern.
-        //     double? previousInterval = evenHitObjects.Previous?.HitObjectInterval;
-
-        //     if (previousInterval != null && evenHitObjects.Children.Count > 1)
-        //     {
-        //         double expectedDurationFromPrevious = (double)previousInterval * evenHitObjects.Children.Count;
-        //         double durationDifference = Math.Abs(evenHitObjects.Duration - expectedDurationFromPrevious);
-        //         intervalDifficulty *= MathEvaluator.Sigmoid(durationDifference / hitWindow, 1.5, 0.5, 0.5, 1);
-        //     }
-
-        //     // Penalize patterns that can be hit within a single hit window.
-        //     intervalDifficulty *= MathEvaluator.Sigmoid(evenHitObjects.Duration / hitWindow, 1, 0.5, 0.5, 1);
-
-        //     return intervalDifficulty;
-        // }
-
-        // private static double evaluateDifficultyOf(EvenPatterns evenPatterns)
-        // {
-        //     return ratioDifficulty(evenPatterns.IntervalRatio);
-        // }
-
-        // public static double EvaluateDifficultyOf(DifficultyHitObject hitObject, double hitWindow)
-        // {
-        //     TaikoDifficultyHitObjectRhythm rhythm = ((TaikoDifficultyHitObject)hitObject).Rhythm;
-        //     double difficulty = 0.0d;
-
-        //     if (rhythm.EvenHitObjects?.FirstHitObject == hitObject) // Difficulty for EvenHitObjects
-        //         difficulty += 0.5 * evaluateDifficultyOf(rhythm.EvenHitObjects, hitWindow);
-        //     if (rhythm.EvenPatterns?.FirstHitObject == hitObject) // Difficulty for EvenPatterns
-        //         difficulty += evaluateDifficultyOf(rhythm.EvenPatterns);
-
-        //     return difficulty;
-        // }
     }
 }
