@@ -12,6 +12,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Colour;
+using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern;
 using osu.Game.Rulesets.Taiko.Difficulty.Skills;
 using osu.Game.Rulesets.Taiko.Mods;
 using osu.Game.Rulesets.Taiko.Scoring;
@@ -21,11 +22,15 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
     public class TaikoDifficultyCalculator : DifficultyCalculator
     {
         private const double difficulty_multiplier = 0.084375;
-        private const double rhythm_skill_multiplier = 0.2 * difficulty_multiplier;
+        private const double rhythm_skill_multiplier = 0.375 * difficulty_multiplier;
         private const double colour_skill_multiplier = 0.375 * difficulty_multiplier;
         private const double stamina_skill_multiplier = 0.375 * difficulty_multiplier;
 
         public override int Version => 20241007;
+
+        private TaikoPatternFields? patternFields;
+
+        private Pattern? pattern;
 
         public TaikoDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
@@ -34,8 +39,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
         {
+            pattern = new Pattern(mods);
+
             return new Skill[]
             {
+                pattern,
                 new Rhythm(mods),
                 new Colour(mods),
                 new Stamina(mods, false),
@@ -68,6 +76,16 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             }
 
             TaikoColourDifficultyPreprocessor.ProcessAndAssign(difficultyHitObjects);
+            patternFields = TaikoPatternDifficultyPreprocessor.ComputeFields(
+                difficultyHitObjects.Cast<TaikoDifficultyHitObject>().ToList());
+
+            if (pattern == null)
+            {
+                // This means the assumption that createSkills is called before this method was violated.
+                throw new InvalidOperationException("Pattern skill class has not been created. Please call CreateSkills first.");
+            }
+
+            pattern.Initialize(beatmap, patternFields);
 
             return difficultyHitObjects;
         }
@@ -77,6 +95,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             if (beatmap.HitObjects.Count == 0)
                 return new TaikoDifficultyAttributes { Mods = mods };
 
+            Pattern pattern = (Pattern)skills.First(x => x is Pattern);
             Colour colour = (Colour)skills.First(x => x is Colour);
             Rhythm rhythm = (Rhythm)skills.First(x => x is Rhythm);
             Stamina stamina = (Stamina)skills.First(x => x is Stamina);
@@ -84,6 +103,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             double colourRating = colour.DifficultyValue() * colour_skill_multiplier;
             double rhythmRating = rhythm.DifficultyValue() * rhythm_skill_multiplier;
+            double patternRating = pattern.DifficultyValue() * rhythm_skill_multiplier;
             double staminaRating = stamina.DifficultyValue() * stamina_skill_multiplier;
             double monoStaminaRating = singleColourStamina.DifficultyValue() * stamina_skill_multiplier;
             double monoStaminaFactor = staminaRating == 0 ? 1 : Math.Pow(monoStaminaRating / staminaRating, 5);
@@ -110,6 +130,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 StaminaDifficulty = staminaRating,
                 MonoStaminaFactor = monoStaminaFactor,
                 RhythmDifficulty = rhythmRating,
+                PatternDifficulty = patternRating,
                 ColourDifficulty = colourRating,
                 PeakDifficulty = combinedRating,
                 GreatHitWindow = hitWindows.WindowFor(HitResult.Great) / clockRate,
