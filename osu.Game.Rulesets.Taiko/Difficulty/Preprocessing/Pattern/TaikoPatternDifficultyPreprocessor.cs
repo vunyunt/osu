@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
 {
     public static class TaikoPatternDifficultyPreprocessor
     {
-        private const int harmonics = 8;
+        private const int harmonics = 4;
 
         private const double cycles_count = 4;
 
@@ -21,7 +21,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
         {
             for (int i = 0; i < harmonics; i++)
             {
-                double harmonicInterval = interval * Math.Pow(2, i);
+                double harmonicInterval = interval / Math.Pow(2, i);
                 double harmonicAmplitude = Math.Pow(0.5, i);
 
                 for (int j = 0; j < cycles_count * (i + 1); j++)
