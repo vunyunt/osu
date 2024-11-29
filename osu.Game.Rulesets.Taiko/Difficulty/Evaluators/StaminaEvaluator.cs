@@ -29,8 +29,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
         /// </summary>
         private static int availableFingersFor(TaikoDifficultyHitObject hitObject)
         {
-            DifficultyHitObject? previousColourChange = hitObject.Colour.PreviousColourChange;
-            DifficultyHitObject? nextColourChange = hitObject.Colour.NextColourChange;
+            DifficultyHitObject? previousColourChange = hitObject.PreviousColourChange;
+            DifficultyHitObject? nextColourChange = hitObject.NextColourChange;
 
             if (previousColourChange != null && hitObject.StartTime - previousColourChange.StartTime < 300)
             {

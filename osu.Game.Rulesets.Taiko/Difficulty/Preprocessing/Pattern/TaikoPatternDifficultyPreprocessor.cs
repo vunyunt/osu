@@ -11,11 +11,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
 {
     public static class TaikoPatternDifficultyPreprocessor
     {
-        private const int harmonics = 4;
+        private const int harmonics = 8;
 
         private const double cycles_count = 4;
 
-        private const double decay_base = Math.E;
+        private const double decay_base = 2;
 
         private static void createAlignmentPoints(double time, double interval, TaikoTimeField timeField)
         {

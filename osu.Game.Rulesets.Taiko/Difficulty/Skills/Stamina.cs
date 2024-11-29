@@ -42,7 +42,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
             // Safely prevents previous strains from shifting as new notes are added.
             var currentObject = current as TaikoDifficultyHitObject;
-            int index = currentObject?.Colour.MonoStreak?.HitObjects.IndexOf(currentObject) ?? 0;
+            int index = currentObject?.MonoStreakIndex ?? 0;
 
             if (singleColourStamina)
                 return currentStrain / (1 + Math.Exp(-(index - 10) / 2.0));

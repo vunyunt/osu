@@ -16,13 +16,13 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
     public class Pattern : StrainDecaySkill
     {
-        protected override double SkillMultiplier => 1;
+        protected override double SkillMultiplier => 0.07;
 
         protected override double StrainDecayBase => 0;
 
         private TaikoPatternFields? fields;
 
-        private const double rhythm_error_standard_deviation = 1000.0;
+        private double? rhythmErrorStandardDeviation;
 
         private double? hitWindowStandardDeviation;
 
@@ -35,11 +35,12 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
             HitWindows hitWindows = new TaikoHitWindows();
             hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
             hitWindowStandardDeviation = hitWindows.WindowFor(HitResult.Great) / 4;
+            rhythmErrorStandardDeviation = 500 + hitWindowStandardDeviation;
         }
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
-            if (fields == null || hitWindowStandardDeviation == null)
+            if (fields == null || hitWindowStandardDeviation == null || rhythmErrorStandardDeviation == null)
             {
                 throw new InvalidOperationException("Pattern skill class has not been initialized. Please call Initialize first.");
             }
@@ -47,7 +48,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
             return PatternEvaluator.EvaluateDifficultyOf(
                 (TaikoDifficultyHitObject)current,
                 fields,
-                rhythm_error_standard_deviation,
+                (double)rhythmErrorStandardDeviation,
                 (double)hitWindowStandardDeviation);
         }
     }
