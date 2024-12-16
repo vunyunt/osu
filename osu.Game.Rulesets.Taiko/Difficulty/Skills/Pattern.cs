@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
     public class Pattern : StrainDecaySkill
     {
-        protected override double SkillMultiplier => 0.07;
+        protected override double SkillMultiplier => 0.2;
 
         protected override double StrainDecayBase => 0;
 

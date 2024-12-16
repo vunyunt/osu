@@ -20,9 +20,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoDifficultyCalculator : DifficultyCalculator
     {
-        private const double difficulty_multiplier = 0.08;
-        private const double stamina_skill_multiplier = 0.5 * difficulty_multiplier;
-        private const double pattern_skill_multiplier = 0.5 * difficulty_multiplier;
+        private const double difficulty_multiplier = 0.087;
+        private const double stamina_skill_multiplier = 0.4 * difficulty_multiplier;
+        private const double pattern_skill_multiplier = 0.6 * difficulty_multiplier;
 
         public override int Version => 20241007;
 
@@ -59,7 +59,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
         {
             List<DifficultyHitObject> difficultyHitObjects = TaikoDifficultyHitObject.FromHitObjects(beatmap.HitObjects, clockRate);
 
-            patternFields = TaikoPatternDifficultyPreprocessor.ComputeFields(
+            patternFields = new TaikoPatternDifficultyPreprocessor().ComputeFields(
                 difficultyHitObjects.Cast<TaikoDifficultyHitObject>().ToList());
 
             if (patternSkill == null)
@@ -145,7 +145,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 double patternPeak = patternPeaks[i] * pattern_skill_multiplier;
                 double staminaPeak = staminaPeaks[i] * stamina_skill_multiplier;
 
-                double peak = norm(1.5, patternPeak, staminaPeak);
+                double peak = norm(2, patternPeak, staminaPeak);
 
                 // Sections with 0 strain are excluded to avoid worst-case time complexity of the following sort (e.g. /b/2351871).
                 // These sections will not contribute to the difficulty.

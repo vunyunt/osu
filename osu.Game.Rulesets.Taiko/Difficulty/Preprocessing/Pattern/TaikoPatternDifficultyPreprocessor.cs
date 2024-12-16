@@ -9,31 +9,54 @@ using osu.Game.Rulesets.Taiko.Objects;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
 {
-    public static class TaikoPatternDifficultyPreprocessor
+    public class TaikoPatternDifficultyPreprocessor
     {
-        private const int harmonics = 8;
+        private const int harmonics_count = 4;
 
-        private const double cycles_count = 4;
+        private const double harmonics_decay_base = 0.5;
 
-        private const double decay_base = 2;
+        private const int cycles_count = 6;
 
-        private static void createAlignmentPoints(double time, double interval, TaikoTimeField timeField)
+        private const double cycles_decay_base = 0.7071;
+
+        private Dictionary<double, double> precomputedNodes = new Dictionary<double, double>();
+
+        public TaikoPatternDifficultyPreprocessor()
         {
-            for (int i = 0; i < harmonics; i++)
+            const double base_interval = 1;
+
+            for (int i = 0; i < harmonics_count; i++)
             {
-                double harmonicInterval = interval / Math.Pow(2, i);
-                double harmonicAmplitude = Math.Pow(0.5, i);
+                double harmonicInterval = base_interval / Math.Pow(2, i);
+                double harmonicAmplitude = Math.Pow(harmonics_decay_base, i);
 
                 for (int j = 0; j < cycles_count * (i + 1); j++)
                 {
-                    double t = time + harmonicInterval * j;
-                    double amplitude = harmonicAmplitude * Math.Pow(decay_base, j / (i + 1));
-                    timeField.AddNode(t, amplitude);
+                    double t = harmonicInterval * j;
+                    double amplitude = harmonicAmplitude * Math.Pow(cycles_decay_base, t);
+                    amplitude /= cycles_count;
+                    if (precomputedNodes.ContainsKey(t))
+                    {
+                        precomputedNodes[t] += amplitude;
+                    }
+                    else
+                    {
+                        precomputedNodes.Add(t, amplitude);
+                    }
                 }
             }
         }
 
-        private static void createRhythmAlignmentPoints(
+        private void createAlignmentPoints(double time, double interval, TaikoTimeField timeField)
+        {
+            foreach (var (t, amplitude) in precomputedNodes)
+            {
+                double scaledT = t * interval;
+                timeField.AddNode(scaledT + time, amplitude);
+            }
+        }
+
+        private void createRhythmAlignmentPoints(
             IEnumerable<TaikoDifficultyHitObject> hitObjects, TaikoTimeField timeField)
         {
             hitObjects
@@ -41,7 +64,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
                 .ForEach(hitObject => createAlignmentPoints(hitObject.StartTime, hitObject.DeltaTime, timeField));
         }
 
-        private static void createColourAlignmentPoints(
+        private void createColourAlignmentPoints(
             IEnumerable<TaikoDifficultyHitObject> hitObject, HitType type, TaikoTimeField timeField)
         {
             hitObject
@@ -52,15 +75,15 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
         }
 
 
-        private static void createCentreAlignmentPoints(
+        private void createCentreAlignmentPoints(
             IEnumerable<TaikoDifficultyHitObject> hitObject, TaikoPatternFields fields
         ) => createColourAlignmentPoints(hitObject, HitType.Centre, fields.CentreField);
 
-        private static void createRimAlignmentPoints(
+        private void createRimAlignmentPoints(
             IEnumerable<TaikoDifficultyHitObject> hitObject, TaikoPatternFields fields
         ) => createColourAlignmentPoints(hitObject, HitType.Rim, fields.RimField);
 
-        private static void createColourChangeAlignmentPoints(
+        private void createColourChangeAlignmentPoints(
             IEnumerable<TaikoDifficultyHitObject> hitObject, TaikoPatternFields fields
         )
         {
@@ -78,7 +101,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
             .ForEach(x => createAlignmentPoints(x.hitObject.StartTime, x.interval, fields.ColourChangeField));
         }
 
-        public static TaikoPatternFields ComputeFields(IEnumerable<TaikoDifficultyHitObject> hitObjects)
+        public TaikoPatternFields ComputeFields(IEnumerable<TaikoDifficultyHitObject> hitObjects)
         {
             TaikoPatternFields fields = new TaikoPatternFields();
 

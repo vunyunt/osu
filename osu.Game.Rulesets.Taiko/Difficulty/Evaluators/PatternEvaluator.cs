@@ -28,11 +28,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             double hitAmplitude = Math.Sqrt(
                 Math.Pow(centreHitAmplitude, 2) +
                 Math.Pow(rimHitAmplitude, 2) +
-                Math.Pow(colourChangeAmplitude, 2) +
+                // Math.Pow(colourChangeAmplitude * 0.5, 2) +
                 Math.Pow(rhythmHitAmplitude, 2));
 
             double errorAmplitude = Math.Sqrt(
-                Math.Pow(colourChangeErrorAmplitude, 2) +
+                // Math.Pow(colourChangeErrorAmplitude * 0.5, 2) +
                 Math.Pow(rhythmErrorAmplitude, 2));
 
             hitAmplitude = Math.Max(hitAmplitude, 0.1);
