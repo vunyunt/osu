@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 {
     public class Pattern : StrainDecaySkill
     {
-        protected override double SkillMultiplier => 0.2;
+        protected override double SkillMultiplier => 0.04;
 
         protected override double StrainDecayBase => 0;
 
@@ -34,8 +34,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Skills
 
             HitWindows hitWindows = new TaikoHitWindows();
             hitWindows.SetDifficulty(beatmap.Difficulty.OverallDifficulty);
-            hitWindowStandardDeviation = hitWindows.WindowFor(HitResult.Great) / 4;
-            rhythmErrorStandardDeviation = 500 + hitWindowStandardDeviation;
+            hitWindowStandardDeviation = hitWindows.WindowFor(HitResult.Great);
+            rhythmErrorStandardDeviation = 1000 + hitWindowStandardDeviation;
         }
 
         protected override double StrainValueOf(DifficultyHitObject current)

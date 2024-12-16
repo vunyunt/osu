@@ -35,6 +35,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 
         public TaikoDifficultyHitObject? NextColourChange => MonoStreak.Last();
 
+        public bool IsColourChange => PreviousColourChange == this;
+
         /// <summary>
         /// Creates a new difficulty hit object.
         /// </summary>

@@ -9,6 +9,22 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 {
     public static class PatternEvaluator
     {
+        private static double evaluateDifficultyForField(
+            TaikoDifficultyHitObject hitObject,
+            TaikoTimeField field,
+            double errorStandardDeviation,
+            double hitWindowStandardDeviation)
+        {
+            double hitAmplitude = field.GetAmplitude(hitObject.StartTime, hitWindowStandardDeviation);
+            double errorAmplitude = field.GetAmplitude(hitObject.StartTime, errorStandardDeviation);
+
+            hitAmplitude = Math.Max(0.1, hitAmplitude);
+            double difficulty = errorAmplitude / hitAmplitude;
+            // difficulty = Math.Max(0, difficulty);
+
+            return difficulty;
+        }
+
         public static double EvaluateDifficultyOf(
             TaikoDifficultyHitObject hitObject,
             TaikoPatternFields fields,
@@ -16,6 +32,32 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
             double hitWindowStandardDeviation)
         {
             if (hitObject.BaseObject is not Hit) return 0;
+
+            // double rhythmErrorStandardDeviation = Math.Min(errorStandardDeviation, hitObject.DeltaTime);
+            // rhythmErrorStandardDeviation = Math.Max(hitWindowStandardDeviation, rhythmErrorStandardDeviation);
+            double rhythmDifficulty = evaluateDifficultyForField(hitObject, fields.RhythmField, errorStandardDeviation, hitWindowStandardDeviation);
+            double colourChangeDifficulty = 0;
+
+            if (hitObject.IsColourChange)
+            {
+                colourChangeDifficulty = evaluateDifficultyForField(hitObject, fields.ColourChangeField, errorStandardDeviation, hitWindowStandardDeviation);
+                // colourChangeDifficulty *= 0.1;
+            }
+            else
+            {
+            }
+
+            double centreDifficulty = evaluateDifficultyForField(hitObject, fields.CentreField, errorStandardDeviation, hitWindowStandardDeviation);
+            double rimDifficulty = evaluateDifficultyForField(hitObject, fields.RimField, errorStandardDeviation, hitWindowStandardDeviation);
+
+            // centreDifficulty *= 0.1;
+            // rimDifficulty *= 0.1;
+
+            // System.Console.WriteLine("{0},{1},{2},{3}", rhythmDifficulty, colourChangeDifficulty, centreDifficulty, rimDifficulty);
+
+            return Math.Sqrt(rhythmDifficulty * rhythmDifficulty + colourChangeDifficulty * colourChangeDifficulty) + centreDifficulty + rimDifficulty;
+
+            // return rhythmDifficulty;
 
             double rhythmHitAmplitude = fields.RhythmField.GetAmplitude(hitObject.StartTime, hitWindowStandardDeviation);
             double centreHitAmplitude = fields.CentreField.GetAmplitude(hitObject.StartTime, hitWindowStandardDeviation);

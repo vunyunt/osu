@@ -17,7 +17,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
 
         private const int cycles_count = 6;
 
-        private const double cycles_decay_base = 0.7071;
+        private const double cycles_decay_base = 0.5;
 
         private Dictionary<double, double> precomputedNodes = new Dictionary<double, double>();
 
@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
                     }
                     else
                     {
-                        precomputedNodes.Add(t, amplitude);
+                        precomputedNodes.TryAdd(t, amplitude);
                     }
                 }
             }

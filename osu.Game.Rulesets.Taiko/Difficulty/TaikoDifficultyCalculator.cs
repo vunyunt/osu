@@ -20,9 +20,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoDifficultyCalculator : DifficultyCalculator
     {
-        private const double difficulty_multiplier = 0.087;
-        private const double stamina_skill_multiplier = 0.4 * difficulty_multiplier;
-        private const double pattern_skill_multiplier = 0.6 * difficulty_multiplier;
+        private const double difficulty_multiplier = 0.082;
+        private const double stamina_skill_multiplier = 0.5 * difficulty_multiplier;
+        private const double pattern_skill_multiplier = 0.5 * difficulty_multiplier;
 
         public override int Version => 20241007;
 
