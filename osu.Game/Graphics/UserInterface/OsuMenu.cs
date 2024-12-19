@@ -32,7 +32,7 @@ namespace osu.Game.Graphics.UserInterface
             MaskingContainer.CornerRadius = 4;
             ItemsContainer.Padding = new MarginPadding(5);
 
-            // OnSubmenuOpen += _ => { menuSamples?.PlaySubOpenSample(); };
+            OnSubmenuOpen += _ => { menuSamples?.PlaySubOpenSample(); };
         }
 
         protected override void Update()

@@ -11,7 +11,6 @@ using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing;
-using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern;
 using osu.Game.Rulesets.Taiko.Difficulty.Skills;
 using osu.Game.Rulesets.Taiko.Mods;
 using osu.Game.Rulesets.Taiko.Scoring;
@@ -20,15 +19,11 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 {
     public class TaikoDifficultyCalculator : DifficultyCalculator
     {
-        private const double difficulty_multiplier = 0.082;
+        private const double difficulty_multiplier = 0.0785;
         private const double stamina_skill_multiplier = 0.5 * difficulty_multiplier;
         private const double pattern_skill_multiplier = 0.5 * difficulty_multiplier;
 
         public override int Version => 20241007;
-
-        private TaikoPatternFields? patternFields;
-
-        private Pattern? patternSkill;
 
         public TaikoDifficultyCalculator(IRulesetInfo ruleset, IWorkingBeatmap beatmap)
             : base(ruleset, beatmap)
@@ -37,11 +32,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
         protected override Skill[] CreateSkills(IBeatmap beatmap, Mod[] mods, double clockRate)
         {
-            patternSkill = new Pattern(mods);
-
             return new Skill[]
             {
-                patternSkill,
+                new Pattern(beatmap, mods, clockRate),
                 new Stamina(mods, false),
                 new Stamina(mods, true)
             };
@@ -58,18 +51,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
         protected override IEnumerable<DifficultyHitObject> CreateDifficultyHitObjects(IBeatmap beatmap, double clockRate)
         {
             List<DifficultyHitObject> difficultyHitObjects = TaikoDifficultyHitObject.FromHitObjects(beatmap.HitObjects, clockRate);
-
-            patternFields = new TaikoPatternDifficultyPreprocessor().ComputeFields(
-                difficultyHitObjects.Cast<TaikoDifficultyHitObject>().ToList());
-
-            if (patternSkill == null)
-            {
-                // This means the assumption that createSkills is called before this method was violated.
-                throw new InvalidOperationException("Pattern skill class has not been created. Please call CreateSkills first.");
-            }
-
-            patternSkill.Initialize(beatmap, patternFields);
-
             return difficultyHitObjects;
         }
 

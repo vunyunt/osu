@@ -1,14 +1,63 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern.Data;
 using osu.Game.Rulesets.Taiko.Objects;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 {
+    internal class PreviousObjectEnumerator : IEnumerator<TaikoDifficultyHitObject>
+    {
+        private TaikoDifficultyHitObject start;
+
+        public PreviousObjectEnumerator(TaikoDifficultyHitObject start)
+        {
+            this.start = start;
+            Current = start;
+        }
+
+        public TaikoDifficultyHitObject Current { get; private set; }
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            if (Current.Index == 0) return false;
+            Current = (TaikoDifficultyHitObject)Current.Previous(0);
+            return Current != null;
+        }
+
+        public void Reset()
+        {
+            Current = start;
+        }
+    }
+
+    internal class PreviousDifficultyHitObjectEnumerable : IEnumerable<TaikoDifficultyHitObject>
+    {
+        private TaikoDifficultyHitObject start;
+        public PreviousDifficultyHitObjectEnumerable(TaikoDifficultyHitObject start) => this.start = start;
+
+        public IEnumerator<TaikoDifficultyHitObject> GetEnumerator()
+        {
+            return new PreviousObjectEnumerator(start);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new PreviousObjectEnumerator(start);
+        }
+    }
+
     /// <summary>
     /// Represents a single hit object in taiko difficulty calculation.
     /// </summary>
@@ -37,6 +86,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
 
         public bool IsColourChange => PreviousColourChange == this;
 
+        public TaikoPatternData PatternData;
+
         /// <summary>
         /// Creates a new difficulty hit object.
         /// </summary>
@@ -45,6 +96,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         /// <param name="clockRate">The rate of the gameplay clock. Modified by speed-changing mods.</param>
         /// <param name="objects">The list of all <see cref="DifficultyHitObject"/>s in the current beatmap.</param>
         /// <param name="monoObjects">The list of all <see cref="TaikoDifficultyHitObject"/>s of the same colour as this <see cref="TaikoDifficultyHitObject"/> in the beatmap.</param>
+        /// <param name="monoStreak">The list of previous consecutive <see cref="TaikoDifficultyHitObject"/>s of the same colour as this <see cref="TaikoDifficultyHitObject"/>.</param>
         /// <param name="index">The position of this <see cref="DifficultyHitObject"/> in the <paramref name="objects"/> list.</param>
         private TaikoDifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate,
                                         List<DifficultyHitObject> objects,
@@ -60,6 +112,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
             MonoIndex = monoObjects.Count;
             monoObjects.Add(this);
             monoDifficultyHitObjects = monoObjects;
+
+            PatternData = new TaikoPatternData(this);
         }
 
         public static List<DifficultyHitObject> FromHitObjects(IEnumerable<HitObject> hitObjects, double clockRate)
@@ -99,5 +153,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing
         }
 
         public TaikoDifficultyHitObject? PreviousMono(int backwardsIndex) => monoDifficultyHitObjects?.ElementAtOrDefault(MonoIndex - (backwardsIndex + 1));
+
+        public IEnumerable<TaikoDifficultyHitObject> PreviousObjects => new PreviousDifficultyHitObjectEnumerable(this);
     }
 }
