@@ -10,15 +10,15 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
 {
     public class TaikoRhythmicAlignmentObject
     {
-        private TaikoRhythmicAlignmentField field;
+        public readonly TaikoRhythmicAlignmentField Field;
 
-        private TaikoDifficultyHitObject hitObject;
+        public readonly TaikoDifficultyHitObject HitObject;
 
         public int Index { get; private set; }
 
         public int? SlowdownIndex { get; private set; }
 
-        private bool isSlowDown;
+        public bool IsSlowDown { get; private set; }
 
         public TaikoRhythmicAlignmentObject(
             TaikoRhythmicAlignmentField field,
@@ -26,17 +26,17 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
             List<TaikoRhythmicAlignmentObject> events,
             List<TaikoRhythmicAlignmentObject> slowdownEvents)
         {
-            this.field = field;
-            this.hitObject = hitObject;
+            Field = field;
+            HitObject = hitObject;
             Index = events.Count;
 
             var previousDeltaTimes = GetPreviousObjects(true)
-                .SelectPair((x, y) => x.hitObject.StartTime - y.hitObject.StartTime)
+                .SelectPair((x, y) => x.HitObject.StartTime - y.HitObject.StartTime)
                 .Take(2)
                 .ToList();
 
-            isSlowDown = previousDeltaTimes.Count == 2 && previousDeltaTimes[0] > previousDeltaTimes[1];
-            if (isSlowDown)
+            IsSlowDown = previousDeltaTimes.Count == 2 && previousDeltaTimes[0] + 2 > previousDeltaTimes[1];
+            if (IsSlowDown)
             {
                 SlowdownIndex = slowdownEvents.Count;
                 slowdownEvents.Add(this);
@@ -49,9 +49,9 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
             return events.ElementAtOrDefault(currentIndex.Value - (backwardsIndex + 1));
         }
 
-        public TaikoRhythmicAlignmentObject? Previous(int backwardsIndex) => previous(backwardsIndex, Index, field.Events);
+        public TaikoRhythmicAlignmentObject? Previous(int backwardsIndex) => previous(backwardsIndex, Index, Field.Events);
 
-        public TaikoRhythmicAlignmentObject? PreviousSlowdown(int backwardsIndex) => previous(backwardsIndex, SlowdownIndex, field.SlowdownEvents);
+        public TaikoRhythmicAlignmentObject? PreviousSlowdown(int backwardsIndex) => previous(backwardsIndex, SlowdownIndex, Field.SlowdownEvents);
 
         public IEnumerable<TaikoRhythmicAlignmentObject> GetPreviousObjects(bool includeSelf = false)
         {
@@ -75,65 +75,6 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern
                 if (previousSlowdown == null) break;
                 yield return previousSlowdown;
             }
-        }
-
-
-        public double CalculateMisalignment(double hitWindowMs)
-        {
-            IEnumerable<TaikoRhythmicAlignmentObject> previousObjects =
-                isSlowDown ? GetPreviousSlowdownObjects() : GetPreviousObjects();
-            List<(double dt, double amplitude)> residue = previousObjects
-                .Take(field.MaxPreviousEvents)
-                .Select(x => (dt: hitObject.StartTime - x.hitObject.StartTime, amplitude: 1d))
-                .ToList();
-
-            if (residue.Count == 0) return 0;
-            double baseInterval = residue[0].dt;
-
-            List<double> decayMultipliers = residue
-                .Select((x, i) =>
-                    Math.Pow(field.TimeDecay, x.dt / 1000) *
-                    Math.Pow(field.CycleDecay, x.dt / baseInterval))
-                .ToList();
-
-            double leniencyExponent = calculateLeniencyExponent(hitWindowMs / baseInterval);
-            double totalMisalignment = 0;
-
-            for (int harmonic = 1; harmonic <= field.HarmonicsCount; harmonic++)
-            {
-                double alignmentInterval = baseInterval / harmonic;
-
-                for (int i = 0; i < residue.Count; i++)
-                {
-                    double dt = residue[i].dt;
-                    double alignment = calculateAlignment(dt, alignmentInterval, leniencyExponent);
-                    double scaledAlignment = residue[i].amplitude * alignment;
-                    totalMisalignment += scaledAlignment * (harmonic - 1) * decayMultipliers[i];
-                    residue[i] = (dt, amplitude: residue[i].amplitude - scaledAlignment);
-                }
-            }
-
-            // This is to avoid missing residues that aren't catched by any harmonic
-            totalMisalignment += residue
-                .Select((x, i) => x.amplitude * decayMultipliers[i])
-                .Sum((x) => x * field.HarmonicsCount);
-
-            return totalMisalignment;
-        }
-
-        private double calculateAlignment(double dt, double alignmentInterval, double leniencyExponent)
-        {
-            double phase = (dt / alignmentInterval) * (Math.PI / 2);
-            double cosComponent = Math.Pow(Math.Abs(Math.Cos(phase)), leniencyExponent);
-            double sinComponent = Math.Pow(Math.Abs(Math.Sin(phase)), leniencyExponent);
-
-            return Math.Max(cosComponent, sinComponent);
-        }
-
-        private double calculateLeniencyExponent(double leniency)
-        {
-            leniency = Math.Clamp(leniency, 0, 1);
-            return Math.Log(0.5) / Math.Log(Math.Cos(Math.PI * leniency / 2));
         }
     }
 }

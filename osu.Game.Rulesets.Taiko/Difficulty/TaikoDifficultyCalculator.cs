@@ -23,7 +23,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
         private const double difficulty_multiplier = 0.067;
         private const double stamina_skill_multiplier = 0.5 * difficulty_multiplier;
         private const double pattern_skill_multiplier = 0.5 * difficulty_multiplier;
-        private const double reading_skill_multiplier = 0.1 * difficulty_multiplier;
+        private const double reading_skill_multiplier = 0.10 * difficulty_multiplier;
 
         private double strainLengthBonus;
         private double patternMultiplier;

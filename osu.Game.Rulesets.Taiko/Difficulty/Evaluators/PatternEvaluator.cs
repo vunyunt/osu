@@ -2,14 +2,78 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing;
+using osu.Game.Rulesets.Taiko.Difficulty.Preprocessing.Pattern;
 
-namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators.Pattern
+namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators
 {
     public static class PatternEvaluator
     {
         private static double pNorm(double p, params double[] values) => Math.Pow(values.Sum(x => Math.Pow(x, p)), 1 / p);
+
+        private static double calculateAlignment(double dt, double alignmentInterval, double leniencyExponent)
+        {
+            double phase = (dt / alignmentInterval) * (Math.PI / 2);
+            double cosComponent = Math.Pow(Math.Abs(Math.Cos(phase)), leniencyExponent);
+            double sinComponent = Math.Pow(Math.Abs(Math.Sin(phase)), leniencyExponent);
+
+            return Math.Max(cosComponent, sinComponent);
+        }
+
+        private static double calculateLeniencyExponent(double leniency)
+        {
+            leniency = Math.Clamp(leniency, 0, 1);
+            return Math.Log(0.5) / Math.Log(Math.Cos(Math.PI * leniency / 2));
+        }
+
+        public static double CalculateMisalignment(TaikoRhythmicAlignmentObject alignmentObject, double hitWindowMs)
+        {
+            var field = alignmentObject.Field;
+            var hitObject = alignmentObject.HitObject;
+
+            IEnumerable<TaikoRhythmicAlignmentObject> previousObjects =
+                alignmentObject.IsSlowDown ? alignmentObject.GetPreviousSlowdownObjects() : alignmentObject.GetPreviousObjects();
+            List<(double dt, double amplitude)> residue = previousObjects
+                .Take(field.MaxPreviousEvents)
+                .Select(x => (dt: hitObject.StartTime - x.HitObject.StartTime, amplitude: 1d))
+                .ToList();
+
+            if (residue.Count == 0) return 0;
+            double baseInterval = residue[0].dt;
+
+            List<double> decayMultipliers = residue
+                .Select((x, i) =>
+                    Math.Pow(field.TimeDecay, x.dt / 1000) *
+                    Math.Pow(field.CycleDecay, x.dt / baseInterval))
+                .ToList();
+
+            double leniencyExponent = calculateLeniencyExponent(hitWindowMs / baseInterval);
+            double totalMisalignment = 0;
+
+            for (int harmonic = 1; harmonic <= field.HarmonicsCount; harmonic++)
+            {
+                double alignmentInterval = baseInterval / harmonic;
+
+                for (int i = 0; i < residue.Count; i++)
+                {
+                    double dt = residue[i].dt;
+                    double alignment = calculateAlignment(dt, alignmentInterval, leniencyExponent);
+                    double scaledAlignment = residue[i].amplitude * alignment;
+                    totalMisalignment += scaledAlignment * (harmonic - 1) * decayMultipliers[i];
+                    residue[i] = (dt, amplitude: residue[i].amplitude - scaledAlignment);
+                }
+            }
+
+            // This is to avoid missing residues that aren't catched by any harmonic
+            totalMisalignment += residue
+                .Select((x, i) => x.amplitude * decayMultipliers[i])
+                .Sum((x) => x * field.HarmonicsCount);
+
+            return totalMisalignment;
+        }
+
 
         private static double monoEffectiveHitWindow(TaikoDifficultyHitObject hitObject, double hitWindowMs)
         {
@@ -28,14 +92,23 @@ namespace osu.Game.Rulesets.Taiko.Difficulty.Evaluators.Pattern
 
         public static double EvaluateDifficultyOf(
             TaikoDifficultyHitObject hitObject,
-            double hitWindowMs)
+            double okHitWindowMs,
+            double greatHitWindowMs)
         {
-            double rhythmMisalignment = hitObject.Pattern.Rhythm.CalculateMisalignment(hitWindowMs);
+            double rhythmMisalignment = CalculateMisalignment(hitObject.Pattern.Rhythm, greatHitWindowMs);
             rhythmMisalignment *= 2;
 
-            double monoMisalignment = hitObject.Pattern.Mono?.CalculateMisalignment(monoEffectiveHitWindow(hitObject, hitWindowMs)) ?? 0;
+            double monoMisalignment = 0;
+            if (hitObject.Pattern.Mono is not null)
+            {
+                monoMisalignment = CalculateMisalignment(hitObject.Pattern.Mono, monoEffectiveHitWindow(hitObject, okHitWindowMs));
+            }
 
-            double colourChangeMisalignment = hitObject.Pattern.ColourChange?.CalculateMisalignment(hitWindowMs) ?? 0;
+            double colourChangeMisalignment = 0;
+            if (hitObject.Pattern.ColourChange is not null)
+            {
+                colourChangeMisalignment = CalculateMisalignment(hitObject.Pattern.ColourChange, monoEffectiveHitWindow(hitObject, okHitWindowMs));
+            }
 
             // Console.WriteLine($"Rhythm: {rhythmMisalignment}, Colour Change: {colourChangeMisalignment}, Mono: {monoMisalignment}");
 
